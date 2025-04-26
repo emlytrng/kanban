@@ -1,57 +1,76 @@
-// Mock real-time updates
-// In a real app, this would be WebSockets or Server-Sent Events
+import { supabase } from "./supabase"
+import { useKanbanStore } from "./store"
 
-type RealtimeUpdate = {
-  type: string
-  [key: string]: any
-}
+export function setupRealtimeSubscription() {
+  const channel = supabase
+    .channel("schema-db-changes")
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "cards",
+      },
+      (payload) => {
+        handleCardChange(payload)
+      },
+    )
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "columns",
+      },
+      (payload) => {
+        handleColumnChange(payload)
+      },
+    )
+    .subscribe()
 
-type UpdateCallback = (update: RealtimeUpdate) => void
-
-// Mock data for simulating other users' actions
-const mockUpdates: RealtimeUpdate[] = [
-  {
-    type: "cardMoved",
-    cardId: "card-2",
-    sourceColumnId: "column-1",
-    destinationColumnId: "column-2",
-    sourceIndex: 1,
-    destinationIndex: 1,
-  },
-  {
-    type: "cardMoved",
-    cardId: "card-3",
-    sourceColumnId: "column-2",
-    destinationColumnId: "column-3",
-    sourceIndex: 0,
-    destinationIndex: 1,
-  },
-  {
-    type: "cardMoved",
-    cardId: "card-4",
-    sourceColumnId: "column-3",
-    destinationColumnId: "column-1",
-    sourceIndex: 0,
-    destinationIndex: 0,
-  },
-]
-
-// Simulate real-time updates
-export function simulateRealtimeUpdate(callback: UpdateCallback) {
-  // Only simulate updates occasionally (10% chance)
-  if (Math.random() < 0.1) {
-    const randomUpdate = mockUpdates[Math.floor(Math.random() * mockUpdates.length)]
-    callback(randomUpdate)
+  return () => {
+    supabase.removeChannel(channel)
   }
 }
 
-// In a real app, you would have a WebSocket connection here
-// Example:
-/*
-const socket = new WebSocket('wss://your-api.com/ws')
+function handleCardChange(payload: any) {
+  const { eventType, new: newRecord, old: oldRecord } = payload
+  const store = useKanbanStore.getState()
 
-socket.onmessage = (event) => {
-  const update = JSON.parse(event.data)
-  callback(update)
+  // Handle card updates
+  if (eventType === "UPDATE" && oldRecord.column_id !== newRecord.column_id) {
+    // Card moved between columns
+    const sourceColumn = store.columns.find((col) => col.id === oldRecord.column_id)
+    const destColumn = store.columns.find((col) => col.id === newRecord.column_id)
+
+    if (sourceColumn && destColumn) {
+      const sourceIndex = sourceColumn.cards.findIndex((card) => card.id === newRecord.id)
+      if (sourceIndex !== -1) {
+        store.moveCard(
+          newRecord.id,
+          oldRecord.column_id,
+          newRecord.column_id,
+          sourceIndex,
+          newRecord.position,
+          true, // Skip optimistic update
+        )
+      }
+    }
+  } else if (eventType === "INSERT") {
+    // Refresh board to get the new card
+    store.fetchBoard()
+  } else if (eventType === "DELETE") {
+    // Refresh board to update after card deletion
+    store.fetchBoard()
+  }
 }
-*/
+
+function handleColumnChange(payload: any) {
+  const { eventType } = payload
+  const store = useKanbanStore.getState()
+
+  // For simplicity, just refresh the board on column changes
+  if (["INSERT", "UPDATE", "DELETE"].includes(eventType)) {
+    store.fetchBoard()
+  }
+}

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { DragDropContext, Droppable } from "@hello-pangea/dnd"
 import { Plus } from "lucide-react"
 import { useKanbanStore } from "@/lib/store"
@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import type { Column } from "@/types"
 import KanbanColumn from "./kanban-column"
-import { simulateRealtimeUpdate } from "@/lib/realtime"
+import { setupRealtimeSubscription } from "@/lib/realtime"
+import { useState } from "react"
 
 export default function KanbanBoard() {
   const { board, columns, fetchBoard, addColumn, moveCard, isLoading } = useKanbanStore()
@@ -19,24 +20,13 @@ export default function KanbanBoard() {
   useEffect(() => {
     fetchBoard()
 
-    // Set up polling for mock real-time updates
-    const interval = setInterval(() => {
-      simulateRealtimeUpdate((update) => {
-        if (update.type === "cardMoved") {
-          moveCard(
-            update.cardId,
-            update.sourceColumnId,
-            update.destinationColumnId,
-            update.sourceIndex,
-            update.destinationIndex,
-            true, // skipOptimistic flag to prevent loops
-          )
-        }
-      })
-    }, 3000)
+    // Set up Supabase realtime subscription
+    const unsubscribe = setupRealtimeSubscription()
 
-    return () => clearInterval(interval)
-  }, [fetchBoard, moveCard])
+    return () => {
+      unsubscribe()
+    }
+  }, [fetchBoard])
 
   const handleDragEnd = (result: any) => {
     const { destination, source, draggableId } = result
