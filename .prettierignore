@@ -1,0 +1,13 @@
+# Dependencies
+node_modules
+
+# Build output
+.next/
+out/
+build/
+
+# Lockfiles
+package-lock.json
+
+# Other generated files or logs
+*.env*

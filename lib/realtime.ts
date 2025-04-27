@@ -1,5 +1,5 @@
-import { supabase } from "./supabase"
-import { useKanbanStore } from "./store"
+import { supabase } from "./supabase";
+import { useKanbanStore } from "./store";
 
 export function setupRealtimeSubscription() {
   const channel = supabase
@@ -12,8 +12,8 @@ export function setupRealtimeSubscription() {
         table: "cards",
       },
       (payload) => {
-        handleCardChange(payload)
-      },
+        handleCardChange(payload);
+      }
     )
     .on(
       "postgres_changes",
@@ -23,54 +23,60 @@ export function setupRealtimeSubscription() {
         table: "columns",
       },
       (payload) => {
-        handleColumnChange(payload)
-      },
+        handleColumnChange(payload);
+      }
     )
-    .subscribe()
+    .subscribe();
 
   return () => {
-    supabase.removeChannel(channel)
-  }
+    supabase.removeChannel(channel);
+  };
 }
 
 function handleCardChange(payload: any) {
-  const { eventType, new: newRecord, old: oldRecord } = payload
-  const store = useKanbanStore.getState()
+  const { eventType, new: newRecord, old: oldRecord } = payload;
+  const store = useKanbanStore.getState();
 
   // Handle card updates
   if (eventType === "UPDATE" && oldRecord.column_id !== newRecord.column_id) {
     // Card moved between columns
-    const sourceColumn = store.columns.find((col) => col.id === oldRecord.column_id)
-    const destColumn = store.columns.find((col) => col.id === newRecord.column_id)
+    const sourceColumn = store.columns.find(
+      (col) => col.id === oldRecord.column_id
+    );
+    const destColumn = store.columns.find(
+      (col) => col.id === newRecord.column_id
+    );
 
     if (sourceColumn && destColumn) {
-      const sourceIndex = sourceColumn.cards.findIndex((card) => card.id === newRecord.id)
+      const sourceIndex = sourceColumn.cards.findIndex(
+        (card) => card.id === newRecord.id
+      );
       if (sourceIndex !== -1) {
-        store.moveCard(
+        store.actions.moveCard(
           newRecord.id,
           oldRecord.column_id,
           newRecord.column_id,
           sourceIndex,
           newRecord.position,
-          true, // Skip optimistic update
-        )
+          true // Skip optimistic update
+        );
       }
     }
   } else if (eventType === "INSERT") {
     // Refresh board to get the new card
-    store.fetchBoard()
+    store.actions.fetchBoard();
   } else if (eventType === "DELETE") {
     // Refresh board to update after card deletion
-    store.fetchBoard()
+    store.actions.fetchBoard();
   }
 }
 
 function handleColumnChange(payload: any) {
-  const { eventType } = payload
-  const store = useKanbanStore.getState()
+  const { eventType } = payload;
+  const store = useKanbanStore.getState();
 
   // For simplicity, just refresh the board on column changes
   if (["INSERT", "UPDATE", "DELETE"].includes(eventType)) {
-    store.fetchBoard()
+    store.actions.fetchBoard();
   }
 }

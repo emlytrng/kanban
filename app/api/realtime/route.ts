@@ -1,15 +1,15 @@
-import { NextResponse } from "next/server"
+import { NextResponse } from "next/server";
 
 // This would be a WebSocket endpoint in a real application
 // For our mock implementation, we'll use polling
 
 export async function GET() {
   // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 300))
+  await new Promise((resolve) => setTimeout(resolve, 300));
 
   // Most of the time, return no updates
   if (Math.random() < 0.7) {
-    return NextResponse.json({ updates: [] })
+    return NextResponse.json({ updates: [] });
   }
 
   // Occasionally return a mock update
@@ -38,9 +38,10 @@ export async function GET() {
       sourceIndex: 0,
       destinationIndex: 0,
     },
-  ]
+  ];
 
-  const randomUpdate = mockUpdates[Math.floor(Math.random() * mockUpdates.length)]
+  const randomUpdate =
+    mockUpdates[Math.floor(Math.random() * mockUpdates.length)];
 
-  return NextResponse.json({ updates: [randomUpdate] })
+  return NextResponse.json({ updates: [randomUpdate] });
 }

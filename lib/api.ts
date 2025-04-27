@@ -1,4 +1,4 @@
-import type { Board, Column } from "@/types"
+import type { Board, Column } from "@/types";
 
 // Mock initial data
 const initialBoard: Board = {
@@ -7,10 +7,18 @@ const initialBoard: Board = {
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
   users: [
-    { id: "user-1", name: "You", avatar: "/placeholder.svg?height=32&width=32" },
-    { id: "user-2", name: "John Doe", avatar: "/placeholder.svg?height=32&width=32" },
+    {
+      id: "user-1",
+      name: "You",
+      avatar: "/placeholder.svg?height=32&width=32",
+    },
+    {
+      id: "user-2",
+      name: "John Doe",
+      avatar: "/placeholder.svg?height=32&width=32",
+    },
   ],
-}
+};
 
 const initialColumns: Column[] = [
   {
@@ -20,7 +28,8 @@ const initialColumns: Column[] = [
       {
         id: "card-1",
         title: "Research competitors",
-        description: "Look at similar products and identify strengths and weaknesses",
+        description:
+          "Look at similar products and identify strengths and weaknesses",
         assignee: "You",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -69,41 +78,43 @@ const initialColumns: Column[] = [
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
-]
+];
 
 // Mock data storage
 const boardData = {
   board: initialBoard,
   columns: initialColumns,
-}
+};
 
 // Mock API functions
 export async function fetchBoardData() {
   // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 800))
+  await new Promise((resolve) => setTimeout(resolve, 800));
 
-  return { ...boardData }
+  return { ...boardData };
 }
 
 export async function updateBoardData(update: any) {
   // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 500))
+  await new Promise((resolve) => setTimeout(resolve, 500));
 
   // Simulate random network errors (10% chance)
   if (Math.random() < 0.1) {
-    throw new Error("Network error")
+    throw new Error("Network error");
   }
 
   // In a real app, this would be an API call
   // For now, we'll just update our mock data
   switch (update.type) {
     case "addColumn":
-      boardData.columns.push(update.column)
-      break
+      boardData.columns.push(update.column);
+      break;
 
     case "deleteColumn":
-      boardData.columns = boardData.columns.filter((col) => col.id !== update.columnId)
-      break
+      boardData.columns = boardData.columns.filter(
+        (col) => col.id !== update.columnId
+      );
+      break;
 
     case "addCard":
       boardData.columns = boardData.columns.map((col) => {
@@ -111,11 +122,11 @@ export async function updateBoardData(update: any) {
           return {
             ...col,
             cards: [...col.cards, update.card],
-          }
+          };
         }
-        return col
-      })
-      break
+        return col;
+      });
+      break;
 
     case "updateCard":
       boardData.columns = boardData.columns.map((col) => {
@@ -127,15 +138,15 @@ export async function updateBoardData(update: any) {
                 return {
                   ...card,
                   ...update.updates,
-                }
+                };
               }
-              return card
+              return card;
             }),
-          }
+          };
         }
-        return col
-      })
-      break
+        return col;
+      });
+      break;
 
     case "deleteCard":
       boardData.columns = boardData.columns.map((col) => {
@@ -143,43 +154,51 @@ export async function updateBoardData(update: any) {
           return {
             ...col,
             cards: col.cards.filter((card) => card.id !== update.cardId),
-          }
+          };
         }
-        return col
-      })
-      break
+        return col;
+      });
+      break;
 
     case "moveCard":
-      const { cardId, sourceColumnId, destinationColumnId, sourceIndex, destinationIndex } = update
+      const {
+        cardId,
+        sourceColumnId,
+        destinationColumnId,
+        sourceIndex,
+        destinationIndex,
+      } = update;
 
       // Find the card to move
-      const sourceColumn = boardData.columns.find((col) => col.id === sourceColumnId)
-      if (!sourceColumn) return
+      const sourceColumn = boardData.columns.find(
+        (col) => col.id === sourceColumnId
+      );
+      if (!sourceColumn) return;
 
-      const card = sourceColumn.cards.find((c) => c.id === cardId)
-      if (!card) return
+      const card = sourceColumn.cards.find((c) => c.id === cardId);
+      if (!card) return;
 
       // Remove from source column
       boardData.columns = boardData.columns.map((col) => {
         if (col.id === sourceColumnId) {
-          const newCards = [...col.cards]
-          newCards.splice(sourceIndex, 1)
-          return { ...col, cards: newCards }
+          const newCards = [...col.cards];
+          newCards.splice(sourceIndex, 1);
+          return { ...col, cards: newCards };
         }
-        return col
-      })
+        return col;
+      });
 
       // Add to destination column
       boardData.columns = boardData.columns.map((col) => {
         if (col.id === destinationColumnId) {
-          const newCards = [...col.cards]
-          newCards.splice(destinationIndex, 0, card)
-          return { ...col, cards: newCards }
+          const newCards = [...col.cards];
+          newCards.splice(destinationIndex, 0, card);
+          return { ...col, cards: newCards };
         }
-        return col
-      })
-      break
+        return col;
+      });
+      break;
   }
 
-  return true
+  return true;
 }

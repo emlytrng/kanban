@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server"
-import type { Board, Column } from "@/types"
+import { NextResponse } from "next/server";
+import type { Board, Column } from "@/types";
 
 // Mock database
 const board: Board = {
@@ -8,10 +8,18 @@ const board: Board = {
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
   users: [
-    { id: "user-1", name: "You", avatar: "/placeholder.svg?height=32&width=32" },
-    { id: "user-2", name: "John Doe", avatar: "/placeholder.svg?height=32&width=32" },
+    {
+      id: "user-1",
+      name: "You",
+      avatar: "/placeholder.svg?height=32&width=32",
+    },
+    {
+      id: "user-2",
+      name: "John Doe",
+      avatar: "/placeholder.svg?height=32&width=32",
+    },
   ],
-}
+};
 
 let columns: Column[] = [
   {
@@ -21,7 +29,8 @@ let columns: Column[] = [
       {
         id: "card-1",
         title: "Research competitors",
-        description: "Look at similar products and identify strengths and weaknesses",
+        description:
+          "Look at similar products and identify strengths and weaknesses",
         assignee: "You",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -70,35 +79,35 @@ let columns: Column[] = [
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
-]
+];
 
 export async function GET() {
   // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 800))
+  await new Promise((resolve) => setTimeout(resolve, 800));
 
-  return NextResponse.json({ board, columns })
+  return NextResponse.json({ board, columns });
 }
 
 export async function POST(request: Request) {
-  const data = await request.json()
+  const data = await request.json();
 
   // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 500))
+  await new Promise((resolve) => setTimeout(resolve, 500));
 
   // Simulate random network errors (10% chance)
   if (Math.random() < 0.1) {
-    return new NextResponse("Server error", { status: 500 })
+    return new NextResponse("Server error", { status: 500 });
   }
 
   // Process the update based on the type
   switch (data.type) {
     case "addColumn":
-      columns.push(data.column)
-      break
+      columns.push(data.column);
+      break;
 
     case "deleteColumn":
-      columns = columns.filter((col) => col.id !== data.columnId)
-      break
+      columns = columns.filter((col) => col.id !== data.columnId);
+      break;
 
     case "addCard":
       columns = columns.map((col) => {
@@ -106,11 +115,11 @@ export async function POST(request: Request) {
           return {
             ...col,
             cards: [...col.cards, data.card],
-          }
+          };
         }
-        return col
-      })
-      break
+        return col;
+      });
+      break;
 
     case "updateCard":
       columns = columns.map((col) => {
@@ -122,15 +131,15 @@ export async function POST(request: Request) {
                 return {
                   ...card,
                   ...data.updates,
-                }
+                };
               }
-              return card
+              return card;
             }),
-          }
+          };
         }
-        return col
-      })
-      break
+        return col;
+      });
+      break;
 
     case "deleteCard":
       columns = columns.map((col) => {
@@ -138,50 +147,56 @@ export async function POST(request: Request) {
           return {
             ...col,
             cards: col.cards.filter((card) => card.id !== data.cardId),
-          }
+          };
         }
-        return col
-      })
-      break
+        return col;
+      });
+      break;
 
     case "moveCard":
-      const { cardId, sourceColumnId, destinationColumnId, sourceIndex, destinationIndex } = data
+      const {
+        cardId,
+        sourceColumnId,
+        destinationColumnId,
+        sourceIndex,
+        destinationIndex,
+      } = data;
 
       // Find the card to move
-      const sourceColumn = columns.find((col) => col.id === sourceColumnId)
+      const sourceColumn = columns.find((col) => col.id === sourceColumnId);
       if (!sourceColumn) {
-        return new NextResponse("Source column not found", { status: 400 })
+        return new NextResponse("Source column not found", { status: 400 });
       }
 
-      const card = sourceColumn.cards.find((c) => c.id === cardId)
+      const card = sourceColumn.cards.find((c) => c.id === cardId);
       if (!card) {
-        return new NextResponse("Card not found", { status: 400 })
+        return new NextResponse("Card not found", { status: 400 });
       }
 
       // Remove from source column
       columns = columns.map((col) => {
         if (col.id === sourceColumnId) {
-          const newCards = [...col.cards]
-          newCards.splice(sourceIndex, 1)
-          return { ...col, cards: newCards }
+          const newCards = [...col.cards];
+          newCards.splice(sourceIndex, 1);
+          return { ...col, cards: newCards };
         }
-        return col
-      })
+        return col;
+      });
 
       // Add to destination column
       columns = columns.map((col) => {
         if (col.id === destinationColumnId) {
-          const newCards = [...col.cards]
-          newCards.splice(destinationIndex, 0, card)
-          return { ...col, cards: newCards }
+          const newCards = [...col.cards];
+          newCards.splice(destinationIndex, 0, card);
+          return { ...col, cards: newCards };
         }
-        return col
-      })
-      break
+        return col;
+      });
+      break;
 
     default:
-      return new NextResponse("Invalid update type", { status: 400 })
+      return new NextResponse("Invalid update type", { status: 400 });
   }
 
-  return NextResponse.json({ success: true })
+  return NextResponse.json({ success: true });
 }
