@@ -13,7 +13,7 @@ interface KanbanState {
 
   actions: {
     fetchUserBoards: (userId: string) => Promise<void>;
-    fetchBoard: (boardId?: string) => Promise<void>;
+    fetchBoard: (userId: string, boardId?: string) => Promise<void>;
     addBoard: (title: string, userId: string) => Promise<string | null>;
     addColumn: (title: string) => void;
     deleteColumn: (columnId: string) => void;
@@ -34,9 +34,6 @@ interface KanbanState {
     ) => void;
   };
 }
-
-// TODO: Replace with your actual preferred board ID.
-const DEFAULT_BOARD_ID = "e7d0e6e1-7792-447d-b002-a56559dfd829";
 
 export const useKanbanStore = create(
   subscribeWithSelector<KanbanState>((set, get) => ({
@@ -93,7 +90,7 @@ export const useKanbanStore = create(
         }
       },
 
-      fetchBoard: async (boardId) => {
+      fetchBoard: async (userId, boardId) => {
         set({ isLoading: true, error: null });
         try {
           if (!boardId) {
@@ -101,6 +98,7 @@ export const useKanbanStore = create(
             const { data: boardMembers, error: membersError } = await supabase
               .from("board_members")
               .select("board_id")
+              .eq("user_id", userId)
               .order("updated_at", { ascending: false })
               .limit(1);
 

@@ -25,7 +25,7 @@ export default function KanbanBoard({ userId }: KanbanBoardProps) {
   const [isAddingColumn, setIsAddingColumn] = useState(false);
 
   useEffect(() => {
-    fetchUserBoards(userId).then(() => fetchBoard());
+    fetchUserBoards(userId).then(() => fetchBoard(userId));
 
     const unsubscribe = setupRealtimeSubscription();
 
