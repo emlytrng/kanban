@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { subscribeWithSelector } from "zustand/middleware";
 import { v4 as uuidv4 } from "uuid";
 import type { Board, Card, Column } from "@/types";
 import { supabase } from "./supabase";
@@ -34,7 +35,7 @@ interface KanbanState {
 // TODO: Replace with your actual preferred board ID.
 const DEFAULT_BOARD_ID = "e7d0e6e1-7792-447d-b002-a56559dfd829";
 
-export const useKanbanStore = create<KanbanState>((set, get) => ({
+export const useKanbanStore = create(subscribeWithSelector<KanbanState>((set, get) => ({
   board: null,
   columns: [],
   isLoading: true,
@@ -523,6 +524,11 @@ export const useKanbanStore = create<KanbanState>((set, get) => ({
       }
     },
   },
-}));
+})));
+
+export const useBoard = () => useKanbanStore((state) => state.board);
+export const useColumns = () => useKanbanStore((state) => state.columns);
+export const useIsLoading = () => useKanbanStore((state) => state.isLoading);
+export const useError = () => useKanbanStore((state) => state.error);
 
 export const useActions = () =>  useKanbanStore((state) => state.actions);

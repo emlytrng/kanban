@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect } from "react";
-import { DragDropContext, Droppable } from "@hello-pangea/dnd";
+import { DragDropContext, Droppable, DropResult } from "@hello-pangea/dnd";
 import { Plus } from "lucide-react";
-import { useActions, useKanbanStore } from "@/lib/store";
+import { useActions, useBoard, useColumns, useIsLoading } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Column } from "@/types";
@@ -12,7 +12,9 @@ import { setupRealtimeSubscription } from "@/lib/realtime";
 import { useState } from "react";
 
 export default function KanbanBoard() {
-  const { board, columns, isLoading } = useKanbanStore();
+  const board = useBoard();
+  const columns = useColumns();
+  const isLoading = useIsLoading();
   const { fetchBoard, addColumn, moveCard } = useActions();
 
   const [newColumnTitle, setNewColumnTitle] = useState("");
@@ -29,7 +31,7 @@ export default function KanbanBoard() {
     };
   }, [fetchBoard]);
 
-  const handleDragEnd = (result: any) => {
+  const handleDragEnd = (result: DropResult) => {
     const { destination, source, draggableId } = result;
 
     // Dropped outside the list
