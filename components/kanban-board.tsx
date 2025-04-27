@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { DragDropContext, Droppable, DropResult } from "@hello-pangea/dnd";
+import { DragDropContext, Droppable, type DropResult } from "@hello-pangea/dnd";
 import { Plus } from "lucide-react";
 import { useActions, useBoard, useColumns, useIsLoading } from "@/lib/store";
 import { Button } from "@/components/ui/button";
@@ -11,25 +11,28 @@ import KanbanColumn from "./kanban-column";
 import { setupRealtimeSubscription } from "@/lib/realtime";
 import { useState } from "react";
 
-export default function KanbanBoard() {
+type KanbanBoardProps = {
+  userId: string;
+};
+
+export default function KanbanBoard({ userId }: KanbanBoardProps) {
   const board = useBoard();
   const columns = useColumns();
   const isLoading = useIsLoading();
-  const { fetchBoard, addColumn, moveCard } = useActions();
+  const { fetchBoard, fetchUserBoards, addColumn, moveCard } = useActions();
 
   const [newColumnTitle, setNewColumnTitle] = useState("");
   const [isAddingColumn, setIsAddingColumn] = useState(false);
 
   useEffect(() => {
-    fetchBoard();
+    fetchUserBoards(userId).then(() => fetchBoard());
 
-    // Set up Supabase realtime subscription
     const unsubscribe = setupRealtimeSubscription();
 
     return () => {
       unsubscribe();
     };
-  }, [fetchBoard]);
+  }, [fetchBoard, fetchUserBoards]);
 
   const handleDragEnd = (result: DropResult) => {
     const { destination, source, draggableId } = result;
@@ -69,16 +72,17 @@ export default function KanbanBoard() {
     );
   }
 
+  if (!board) {
+    return null;
+  }
+
   return (
     <div className="mb-10">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold text-white">
-          {board?.title || "My Kanban Board"}
-        </h2>
         <div className="flex items-center gap-2">
           <span className="text-sm text-slate-300">
-            {board?.users?.length || 1} collaborator
-            {(board?.users?.length || 1) > 1 ? "s" : ""}
+            {board.users?.length || 1} collaborator
+            {(board.users?.length || 1) > 1 ? "s" : ""}
           </span>
         </div>
       </div>
