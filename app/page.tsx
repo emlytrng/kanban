@@ -7,12 +7,6 @@ import { supabase } from "@/lib/supabase";
 export default async function Home() {
   const session = await auth0.getSession();
 
-  let userId;
-  if (session?.user) {
-    const result = await syncUserToDb();
-    userId = result.userId;
-  }
-
   if (!session?.user) {
     return (
       <main className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 p-4 md:p-8">
@@ -50,6 +44,8 @@ export default async function Home() {
       </main>
     );
   }
+
+  const userId = session.user["user_id"];
 
   const { data: boardMembers } = await supabase
     .from("board_members")
