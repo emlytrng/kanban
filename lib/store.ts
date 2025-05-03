@@ -2,7 +2,6 @@ import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import { v4 as uuidv4 } from "uuid";
 import type { Board, Card, Column } from "@/types";
-import { supabase } from "./supabase";
 
 interface KanbanState {
   board: Board | null;
@@ -12,7 +11,7 @@ interface KanbanState {
   error: string | null;
 
   actions: {
-    fetchUserBoards: (userId: string) => Promise<void>;
+    fetchUserBoards: (userId: string) => Promise<KanbanState["boards"]>;
     fetchBoard: (userId: string, boardId?: string) => Promise<void>;
     addBoard: (title: string, userId: string) => Promise<string | null>;
     addColumn: (title: string) => void;
@@ -48,39 +47,21 @@ export const useKanbanStore = create(
       fetchUserBoards: async (userId: string) => {
         set({ isLoading: true, error: null });
         try {
-          const { data: boardMembers, error: membersError } = await supabase
-            .from("board_members")
-            .select("board_id")
-            .eq("user_id", userId)
-            .order("updated_at", { ascending: false });
+          const response = await fetch("/api/boards");
 
-          if (membersError) throw membersError;
-
-          if (!boardMembers || boardMembers.length === 0) {
-            set({ boards: [], isLoading: false });
-            return;
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Failed to fetch boards");
           }
 
-          const boardIds = boardMembers.map((member) => member.board_id);
-
-          // Fetch the actual board data
-          const { data: boardsData, error: boardsError } = await supabase
-            .from("boards")
-            .select("*")
-            .in("id", boardIds)
-            .order("updated_at", { ascending: false });
-
-          if (boardsError) throw boardsError;
+          const { boards } = await response.json();
 
           set({
-            boards: boardsData.map((board) => ({
-              id: board.id,
-              title: board.title,
-              createdAt: board.created_at,
-              updatedAt: board.updated_at,
-            })),
+            boards: boards || [],
             isLoading: false,
           });
+
+          return boards;
         } catch (error: any) {
           console.error("Error fetching user boards:", error);
           set({
@@ -93,85 +74,23 @@ export const useKanbanStore = create(
       fetchBoard: async (userId, boardId) => {
         set({ isLoading: true, error: null });
         try {
-          if (!boardId) {
-            // If no boardId is provided, try to get the latest board
-            const { data: boardMembers, error: membersError } = await supabase
-              .from("board_members")
-              .select("board_id")
-              .eq("user_id", userId)
-              .order("updated_at", { ascending: false })
-              .limit(1);
+          let url = "/api/boards";
 
-            if (membersError) throw membersError;
-
-            if (!boardMembers || boardMembers.length === 0) {
-              // No boards found for this user
-              set({ board: null, columns: [], isLoading: false });
-              return;
-            }
-
-            boardId = boardMembers[0].board_id;
+          if (boardId) {
+            url += `/${boardId}`;
           }
 
-          // Fetch the board
-          const { data: boardData, error: boardError } = await supabase
-            .from("boards")
-            .select("*")
-            .eq("id", boardId)
-            .single();
+          const response = await fetch(url);
 
-          if (boardError) throw boardError;
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Failed to fetch board");
+          }
 
-          // Fetch columns for this board
-          const { data: columnsData, error: columnsError } = await supabase
-            .from("columns")
-            .select(
-              `
-              id,
-              title,
-              position,
-              created_at,
-              updated_at,
-              cards (
-                id,
-                title,
-                description,
-                position,
-                created_at,
-                updated_at
-              )
-            `
-            )
-            .eq("board_id", boardId)
-            .order("position");
-
-          if (columnsError) throw columnsError;
-
-          // Transform data to match our app's structure
-          const columns: Column[] = columnsData.map((col) => ({
-            id: col.id,
-            title: col.title,
-            cards: (col.cards || [])
-              .sort((a, b) => a.position - b.position)
-              .map((card) => ({
-                id: card.id,
-                title: card.title,
-                description: card.description || "",
-                assignee: "You", // Default assignee
-                createdAt: card.created_at,
-                updatedAt: card.updated_at,
-              })),
-            createdAt: col.created_at,
-            updatedAt: col.updated_at,
-          }));
+          const { board, columns } = await response.json();
 
           set({
-            board: {
-              id: boardData.id,
-              title: boardData.title,
-              createdAt: boardData.created_at,
-              updatedAt: boardData.updated_at,
-            },
+            board,
             columns,
             isLoading: false,
           });
@@ -186,47 +105,26 @@ export const useKanbanStore = create(
 
       addBoard: async (title: string, userId: string) => {
         try {
-          // Create a new board
-          const { data: newBoard, error: boardError } = await supabase
-            .from("boards")
-            .insert({
-              title,
-            })
-            .select()
-            .single();
+          const response = await fetch("/api/boards", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ title }),
+          });
 
-          if (boardError) throw boardError;
-
-          // Add the current user as a board member
-          const { error: memberError } = await supabase
-            .from("board_members")
-            .insert({
-              board_id: newBoard.id,
-              user_id: userId,
-            });
-
-          if (memberError) throw memberError;
-
-          // Create default columns
-          const defaultColumns = [
-            { title: "To Do", position: 0 },
-            { title: "In Progress", position: 1 },
-            { title: "Done", position: 2 },
-          ];
-
-          for (const col of defaultColumns) {
-            await supabase.from("columns").insert({
-              board_id: newBoard.id,
-              title: col.title,
-              position: col.position,
-            });
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Failed to create board");
           }
+
+          const { boardId } = await response.json();
 
           // Update the boards list
           await get().actions.fetchUserBoards(userId);
 
           // Return the new board ID
-          return newBoard.id;
+          return boardId;
         } catch (error: any) {
           console.error("Error creating board:", error);
           return null;
@@ -254,18 +152,31 @@ export const useKanbanStore = create(
         }));
 
         try {
-          const { data, error } = await supabase
-            .from("columns")
-            .insert({
-              id: newColumn.id,
-              board_id: board.id,
+          const response = await fetch("/api/columns", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              boardId: board.id,
               title,
               position,
-            })
-            .select()
-            .single();
+            }),
+          });
 
-          if (error) throw error;
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Failed to add column");
+          }
+
+          const { column } = await response.json();
+
+          // Update with the actual column ID from the server
+          set((state) => ({
+            columns: state.columns.map((col) =>
+              col.id === newColumn.id ? { ...col, id: column.id } : col
+            ),
+          }));
         } catch (error) {
           // Rollback on error
           set((state) => ({
@@ -284,12 +195,14 @@ export const useKanbanStore = create(
         }));
 
         try {
-          const { error } = await supabase
-            .from("columns")
-            .delete()
-            .eq("id", columnId);
+          const response = await fetch(`/api/columns/${columnId}`, {
+            method: "DELETE",
+          });
 
-          if (error) throw error;
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Failed to delete column");
+          }
         } catch (error) {
           // Rollback on error
           if (columnToDelete) {
@@ -330,19 +243,39 @@ export const useKanbanStore = create(
         }));
 
         try {
-          const { data, error } = await supabase
-            .from("cards")
-            .insert({
-              id: newCard.id,
-              column_id: columnId,
+          const response = await fetch("/api/cards", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              columnId,
               title,
-              description: "",
               position,
-            })
-            .select()
-            .single();
+            }),
+          });
 
-          if (error) throw error;
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Failed to add card");
+          }
+
+          const { card } = await response.json();
+
+          // Update with the actual card ID from the server
+          set((state) => ({
+            columns: state.columns.map((col) => {
+              if (col.id === columnId) {
+                return {
+                  ...col,
+                  cards: col.cards.map((c) =>
+                    c.id === newCard.id ? { ...c, id: card.id } : c
+                  ),
+                };
+              }
+              return col;
+            }),
+          }));
         } catch (error) {
           // Rollback on error
           set((state) => ({
@@ -392,16 +325,21 @@ export const useKanbanStore = create(
         }));
 
         try {
-          const { error } = await supabase
-            .from("cards")
-            .update({
+          const response = await fetch(`/api/cards/${cardId}`, {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
               title: updates.title,
               description: updates.description,
-              updated_at: new Date().toISOString(),
-            })
-            .eq("id", cardId);
+            }),
+          });
 
-          if (error) throw error;
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Failed to update card");
+          }
         } catch (error) {
           // Rollback on error
           if (originalCard) {
@@ -453,12 +391,14 @@ export const useKanbanStore = create(
         }));
 
         try {
-          const { error } = await supabase
-            .from("cards")
-            .delete()
-            .eq("id", cardId);
+          const response = await fetch(`/api/cards/${cardId}`, {
+            method: "DELETE",
+          });
 
-          if (error) throw error;
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Failed to delete card");
+          }
         } catch (error) {
           // Rollback on error
           set((state) => ({
@@ -495,82 +435,51 @@ export const useKanbanStore = create(
         if (!card) return;
 
         // Apply the move in our local state
-        set((state) => {
-          const newColumns = state.columns.map((col) => {
-            // Remove from source column
-            if (col.id === sourceColumnId) {
-              const newCards = [...col.cards];
-              newCards.splice(sourceIndex, 1);
-              return { ...col, cards: newCards };
-            }
+        if (!skipOptimistic) {
+          set((state) => {
+            const newColumns = state.columns.map((col) => {
+              // Remove from source column
+              if (col.id === sourceColumnId) {
+                const newCards = [...col.cards];
+                newCards.splice(sourceIndex, 1);
+                return { ...col, cards: newCards };
+              }
 
-            // Add to destination column
-            if (col.id === destinationColumnId) {
-              const newCards = [...col.cards];
-              newCards.splice(destinationIndex, 0, card);
-              return { ...col, cards: newCards };
-            }
+              // Add to destination column
+              if (col.id === destinationColumnId) {
+                const newCards = [...col.cards];
+                newCards.splice(destinationIndex, 0, card);
+                return { ...col, cards: newCards };
+              }
 
-            return col;
+              return col;
+            });
+
+            return { columns: newColumns };
           });
-
-          return { columns: newColumns };
-        });
+        }
 
         // Skip API call if this is from a real-time update
         if (skipOptimistic) return;
 
         try {
-          // Update the card's column and position
-          const { error } = await supabase
-            .from("cards")
-            .update({
-              column_id: destinationColumnId,
-              position: destinationIndex,
-              updated_at: new Date().toISOString(),
-            })
-            .eq("id", cardId);
+          const response = await fetch("/api/cards/move", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              cardId,
+              sourceColumnId,
+              destinationColumnId,
+              sourceIndex,
+              destinationIndex,
+            }),
+          });
 
-          if (error) throw error;
-
-          // Update positions of other cards in the destination column
-          const destinationColumn = get().columns.find(
-            (col) => col.id === destinationColumnId
-          );
-          if (destinationColumn) {
-            const updates = destinationColumn.cards.map((card, index) => ({
-              id: card.id,
-              position: index,
-            }));
-
-            for (const update of updates) {
-              if (update.id !== cardId) {
-                await supabase
-                  .from("cards")
-                  .update({ position: update.position })
-                  .eq("id", update.id);
-              }
-            }
-          }
-
-          // Update positions of cards in the source column if different
-          if (sourceColumnId !== destinationColumnId) {
-            const sourceColumn = get().columns.find(
-              (col) => col.id === sourceColumnId
-            );
-            if (sourceColumn) {
-              const updates = sourceColumn.cards.map((card, index) => ({
-                id: card.id,
-                position: index,
-              }));
-
-              for (const update of updates) {
-                await supabase
-                  .from("cards")
-                  .update({ position: update.position })
-                  .eq("id", update.id);
-              }
-            }
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Failed to move card");
           }
         } catch (error) {
           // Rollback on error - move the card back

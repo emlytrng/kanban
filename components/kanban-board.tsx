@@ -1,15 +1,20 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, type DropResult } from "@hello-pangea/dnd";
 import { Plus } from "lucide-react";
-import { useActions, useBoard, useColumns, useIsLoading } from "@/lib/store";
+import {
+  useActions,
+  useBoard,
+  useColumns,
+  useIsLoading,
+  useError,
+} from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Column } from "@/types";
 import KanbanColumn from "./kanban-column";
 import { setupRealtimeSubscription } from "@/lib/realtime";
-import { useState } from "react";
 
 type KanbanBoardProps = {
   userId: string;
@@ -19,20 +24,30 @@ export default function KanbanBoard({ userId }: KanbanBoardProps) {
   const board = useBoard();
   const columns = useColumns();
   const isLoading = useIsLoading();
+  const error = useError();
   const { fetchBoard, fetchUserBoards, addColumn, moveCard } = useActions();
 
   const [newColumnTitle, setNewColumnTitle] = useState("");
   const [isAddingColumn, setIsAddingColumn] = useState(false);
 
   useEffect(() => {
-    fetchUserBoards(userId).then(() => fetchBoard(userId));
+    async function fetchBoardData() {
+      try {
+        const boards = await fetchUserBoards(userId);
+        await fetchBoard(userId, boards[0]?.id);
+      } catch (err) {
+        console.error("Error loading data:", err);
+      }
+    }
+
+    fetchBoardData();
 
     const unsubscribe = setupRealtimeSubscription();
 
     return () => {
       unsubscribe();
     };
-  }, [fetchBoard, fetchUserBoards]);
+  }, [fetchBoard, fetchUserBoards, userId]);
 
   const handleDragEnd = (result: DropResult) => {
     const { destination, source, draggableId } = result;
@@ -68,6 +83,15 @@ export default function KanbanBoard({ userId }: KanbanBoardProps) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 bg-red-500/10 border border-red-500 rounded-md text-red-700 mb-6">
+        <h3 className="font-bold">Error loading board</h3>
+        <p>{error}</p>
       </div>
     );
   }
