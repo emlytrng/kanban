@@ -1,8 +1,7 @@
 import KanbanBoard from "@/components/kanban-board";
 import AddBoardForm from "@/components/add-board-form";
 import { auth0 } from "@/lib/auth0";
-import { syncUserToDb } from "@/lib/actions";
-import { supabase } from "@/lib/supabase";
+import { createSupabaseClient } from "@/lib/supabase";
 
 export default async function Home() {
   const session = await auth0.getSession();
@@ -44,6 +43,8 @@ export default async function Home() {
       </main>
     );
   }
+
+  const supabase = await createSupabaseClient();
 
   const userId = session.user["user_id"];
 

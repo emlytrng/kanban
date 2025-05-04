@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
-import { supabase } from "@/lib/supabase";
+import { createSupabaseClient } from "@/lib/supabase";
 
 // PATCH /api/cards/[cardId] - Update a card
 export async function PATCH(
@@ -13,6 +13,8 @@ export async function PATCH(
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const supabase = await createSupabaseClient();
 
     // Get user ID from Auth0 ID
     const userId = session.user["user_id"];
@@ -74,6 +76,8 @@ export async function DELETE(
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const supabase = await createSupabaseClient();
 
     const cardId = params.cardId;
 

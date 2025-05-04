@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
-import { supabase } from "@/lib/supabase";
+import { createSupabaseClient } from "@/lib/supabase";
 
 // GET /api/boards/[boardId] - Get a specific board with its columns and cards
 export async function GET(
@@ -14,6 +14,8 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const supabase = await createSupabaseClient();
+
     // Get user ID from Auth0 ID
     const userId = session.user["user_id"];
     if (!userId) {
@@ -21,21 +23,6 @@ export async function GET(
     }
 
     const boardId = params.boardId;
-
-    // Check if user is a member of this board
-    const { data: boardMember, error: memberError } = await supabase
-      .from("board_members")
-      .select("*")
-      .eq("board_id", boardId)
-      .eq("user_id", userId)
-      .single();
-
-    if (memberError || !boardMember) {
-      return NextResponse.json(
-        { error: "Board not found or access denied" },
-        { status: 403 }
-      );
-    }
 
     // Fetch the board
     const { data: boardData, error: boardError } = await supabase

@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
-import { supabase } from "@/lib/supabase";
+import { createSupabaseClient } from "@/lib/supabase";
 
 // POST /api/cards/move - Move a card between columns
 export async function POST(request: NextRequest) {
@@ -18,13 +18,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Get request body
-    const {
-      cardId,
-      sourceColumnId,
-      destinationColumnId,
-      sourceIndex,
-      destinationIndex,
-    } = await request.json();
+    const { cardId, sourceColumnId, destinationColumnId, destinationIndex } =
+      await request.json();
     if (!cardId || !sourceColumnId || !destinationColumnId) {
       return NextResponse.json(
         {
@@ -34,6 +29,8 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    const supabase = await createSupabaseClient();
 
     // Update the card's column and position
     const { error } = await supabase

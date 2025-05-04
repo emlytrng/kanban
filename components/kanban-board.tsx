@@ -14,7 +14,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Column } from "@/types";
 import KanbanColumn from "./kanban-column";
-import { setupRealtimeSubscription } from "@/lib/realtime";
 
 type KanbanBoardProps = {
   userId: string;
@@ -41,12 +40,6 @@ export default function KanbanBoard({ userId }: KanbanBoardProps) {
     }
 
     fetchBoardData();
-
-    const unsubscribe = setupRealtimeSubscription();
-
-    return () => {
-      unsubscribe();
-    };
   }, [fetchBoard, fetchUserBoards, userId]);
 
   const handleDragEnd = (result: DropResult) => {

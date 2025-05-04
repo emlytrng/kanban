@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
-import { supabase } from "@/lib/supabase";
+import { createSupabaseClient } from "@/lib/supabase";
 
 // DELETE /api/columns/[columnId] - Delete a column
 export async function DELETE(
@@ -13,6 +13,8 @@ export async function DELETE(
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const supabase = await createSupabaseClient();
 
     // Get user ID from Auth0 ID
     const userId = session.user["user_id"];

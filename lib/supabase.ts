@@ -1,7 +1,39 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
+import { auth0 } from "./auth0";
+import jwt from "jsonwebtoken";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
+// Create a server-side Supabase client with Auth0 token
+export async function createSupabaseClient() {
+  try {
+    const session = await auth0.getSession();
+
+    const payload = {
+      userId: session?.user.sub,
+      user_id: session?.user["https://kanban-nine-pi.vercel.app/user_id"],
+      role: session?.user.role,
+      exp: Math.floor(Date.now() / 1000) + 60 * 60,
+    };
+
+    if (!process.env.SUPABASE_JWT_SECRET) {
+      throw new Error("Missing Supabase JWT secret");
+    }
+
+    const accessToken = jwt.sign(payload, process.env.SUPABASE_JWT_SECRET);
+
+    return createClient<Database>(supabaseUrl, supabaseAnonKey, {
+      global: {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Error creating server Supabase client:", error);
+    // Fall back to anonymous client if there's an error
+    return createClient<Database>(supabaseUrl, supabaseAnonKey);
+  }
+}
