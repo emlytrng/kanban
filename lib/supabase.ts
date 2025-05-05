@@ -14,7 +14,6 @@ export async function createSupabaseClient() {
     const payload = {
       userId: session?.user.sub,
       user_id: session?.user["https://kanban-nine-pi.vercel.app/user_id"],
-      role: session?.user.role,
       exp: Math.floor(Date.now() / 1000) + 60 * 60,
     };
 
