@@ -13,6 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Loader2 } from "lucide-react";
 
 type AddBoardFormProps = {
   userId: string;
@@ -38,8 +39,8 @@ export default function AddBoardForm({ userId }: AddBoardFormProps) {
 
   return (
     <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle>Create a new board</CardTitle>
+      <CardHeader className="space-y-1">
+        <CardTitle className="text-2xl">Create a new board</CardTitle>
         <CardDescription>
           Get started by creating your first Kanban board
         </CardDescription>
@@ -66,7 +67,14 @@ export default function AddBoardForm({ userId }: AddBoardFormProps) {
           disabled={isCreating || !title.trim()}
           className="w-full"
         >
-          {isCreating ? "Creating..." : "Create Board"}
+          {isCreating ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Creating...
+            </>
+          ) : (
+            "Create Board"
+          )}
         </Button>
       </CardFooter>
     </Card>

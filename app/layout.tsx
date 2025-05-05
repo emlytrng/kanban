@@ -4,11 +4,12 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Auth0Provider } from "@auth0/nextjs-auth0";
+import { Toaster } from "@/components/ui/toaster";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Collaborative Kanban Board",
+  title: "Kanban Board",
   description: "A Trello-like board with mock real-time collaboration",
 };
 
@@ -23,11 +24,12 @@ export default function RootLayout({
         <Auth0Provider>
           <ThemeProvider
             attribute="class"
-            defaultTheme="dark"
+            defaultTheme="light"
             enableSystem
             disableTransitionOnChange
           >
             {children}
+            <Toaster />
           </ThemeProvider>
         </Auth0Provider>
       </body>

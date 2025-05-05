@@ -80,8 +80,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Title is required" }, { status: 400 });
     }
 
-    const { data: newBoardId, error: rpcError } = await supabase
-    .rpc('create_board_with_defaults', { board_title: title.trim() });
+    const { data: newBoardId, error: rpcError } = await supabase.rpc(
+      "create_board_with_defaults",
+      { board_title: title.trim() }
+    );
 
     if (rpcError) {
       return NextResponse.json({ error: rpcError.message }, { status: 500 });

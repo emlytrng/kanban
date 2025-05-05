@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Draggable } from "@hello-pangea/dnd";
-import { Clock, MoreHorizontal, Pencil, Trash2, User } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, Calendar } from "lucide-react";
 import { useActions } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import type { Card } from "@/types";
@@ -13,7 +13,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
-import { formatDistanceToNow } from "date-fns";
 
 interface KanbanCardProps {
   card: Card;
@@ -43,8 +42,33 @@ export default function KanbanCard({ card, index, columnId }: KanbanCardProps) {
     deleteCard(columnId, card.id);
   };
 
-  const updatedAt = card.updatedAt ? new Date(card.updatedAt) : new Date();
-  const timeAgo = formatDistanceToNow(updatedAt, { addSuffix: true });
+  // Generate random labels for demo purposes
+  const getRandomLabels = () => {
+    const labels = [
+      "bug",
+      "feature",
+      "enhancement",
+      "documentation",
+      "priority",
+    ];
+    const randomIndex = Math.floor(Math.random() * labels.length);
+    return [labels[randomIndex]];
+  };
+
+  const cardLabels = card.labels || getRandomLabels();
+
+  // Generate random due date for demo purposes
+  const getDueDate = () => {
+    const today = new Date();
+    const randomDays = Math.floor(Math.random() * 30) - 10; // -10 to +20 days from today
+    const dueDate = new Date(today);
+    dueDate.setDate(today.getDate() + randomDays);
+    return dueDate;
+  };
+
+  const dueDate = getDueDate();
+  const formattedDate = `May ${Math.floor(Math.random() * 30) + 1}`;
+  const isPastDue = dueDate < new Date();
 
   return (
     <Draggable draggableId={card.id} index={index}>
@@ -53,7 +77,9 @@ export default function KanbanCard({ card, index, columnId }: KanbanCardProps) {
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className={`p-3 mb-2 bg-slate-800 rounded shadow-sm ${snapshot.isDragging ? "shadow-lg opacity-90" : ""}`}
+          className={`p-3 mb-2 bg-card rounded-md border shadow-sm kanban-card-transition ${
+            snapshot.isDragging ? "shadow-md ring-1 ring-primary/20" : ""
+          }`}
         >
           {isEditing ? (
             <div className="space-y-2">
@@ -91,10 +117,14 @@ export default function KanbanCard({ card, index, columnId }: KanbanCardProps) {
           ) : (
             <>
               <div className="flex justify-between items-start">
-                <h4 className="text-white font-medium">{card.title}</h4>
+                <h4 className="font-medium">{card.title}</h4>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                    >
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -105,7 +135,7 @@ export default function KanbanCard({ card, index, columnId }: KanbanCardProps) {
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={handleDeleteCard}
-                      className="text-red-500"
+                      className="text-destructive focus:text-destructive"
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
                       Delete Card
@@ -115,19 +145,25 @@ export default function KanbanCard({ card, index, columnId }: KanbanCardProps) {
               </div>
 
               {card.description && (
-                <p className="text-sm text-slate-300 mt-2 mb-3">
+                <p className="text-sm text-muted-foreground mt-2 mb-3">
                   {card.description}
                 </p>
               )}
 
-              <div className="flex items-center justify-between mt-2 text-xs text-slate-400">
+              <div className="flex flex-wrap gap-1 mt-2 mb-2">
+                {cardLabels.map((label, i) => (
+                  <span key={i} className={`label label-${label}`}>
+                    {label.charAt(0).toUpperCase() + label.slice(1)}
+                  </span>
+                ))}
+              </div>
+
+              <div className="flex items-center justify-end mt-2 text-xs text-muted-foreground">
                 <div className="flex items-center">
-                  <User className="h-3 w-3 mr-1" />
-                  <span>{card.assignee || "Unassigned"}</span>
-                </div>
-                <div className="flex items-center">
-                  <Clock className="h-3 w-3 mr-1" />
-                  <span>{timeAgo}</span>
+                  <Calendar className="h-3 w-3 mr-1" />
+                  <span className={isPastDue ? "text-destructive" : ""}>
+                    {formattedDate}
+                  </span>
                 </div>
               </div>
             </>

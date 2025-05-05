@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Draggable, Droppable } from "@hello-pangea/dnd";
-import { MoreHorizontal, Plus, Trash2 } from "lucide-react";
+import { MoreHorizontal, Plus } from "lucide-react";
 import { useActions } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,34 +47,32 @@ export default function KanbanColumn({ column, index }: KanbanColumnProps) {
         <div
           {...provided.draggableProps}
           ref={provided.innerRef}
-          className="shrink-0 w-72 bg-slate-700 rounded-lg"
+          className="shrink-0 w-80 bg-card rounded-md border shadow-sm kanban-column-transition"
         >
           <div
             {...provided.dragHandleProps}
-            className="p-3 font-medium text-white flex items-center justify-between"
+            className="p-3 font-medium flex items-center justify-between rounded-t-md border-b"
           >
-            <h3>{column.title}</h3>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-400">
-                {column.cards.length}
-              </span>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    onClick={handleDeleteColumn}
-                    className="text-red-500"
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete Column
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+            <h3 className="font-medium">{column.title}</h3>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                >
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={handleDeleteColumn}
+                  className="text-destructive focus:text-destructive"
+                >
+                  Delete Column
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           <Droppable droppableId={column.id} type="card">
@@ -82,7 +80,10 @@ export default function KanbanColumn({ column, index }: KanbanColumnProps) {
               <div
                 {...provided.droppableProps}
                 ref={provided.innerRef}
-                className={`p-2 min-h-[200px] ${snapshot.isDraggingOver ? "bg-slate-600/50" : ""}`}
+                className={`p-2 min-h-[200px] max-h-[calc(100vh-220px)] overflow-y-auto kanban-scrollbar ${
+                  snapshot.isDraggingOver ? "bg-muted/50" : ""
+                }`}
+                style={{ transition: "background-color 0.2s ease" }}
               >
                 {column.cards.map((card: Card, index: number) => (
                   <KanbanCard
@@ -95,7 +96,7 @@ export default function KanbanColumn({ column, index }: KanbanColumnProps) {
                 {provided.placeholder}
 
                 {isAddingCard ? (
-                  <div className="p-2 bg-slate-800 rounded mt-2">
+                  <div className="p-2 bg-card rounded-md mt-2 border">
                     <Input
                       value={newCardTitle}
                       onChange={(e) => setNewCardTitle(e.target.value)}
@@ -124,11 +125,11 @@ export default function KanbanColumn({ column, index }: KanbanColumnProps) {
                   <Button
                     onClick={() => setIsAddingCard(true)}
                     variant="ghost"
-                    className="w-full justify-start text-slate-400 hover:text-white mt-2"
+                    className="w-full justify-center text-muted-foreground hover:text-foreground mt-2"
                     size="sm"
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    Add Card
+                    Add Task
                   </Button>
                 )}
               </div>

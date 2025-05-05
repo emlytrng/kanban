@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, type DropResult } from "@hello-pangea/dnd";
-import { Plus } from "lucide-react";
+import { Plus, Loader2, Filter, Download } from "lucide-react";
 import {
   useActions,
   useBoard,
@@ -75,14 +75,14 @@ export default function KanbanBoard({ userId }: KanbanBoardProps) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-4 bg-red-500/10 border border-red-500 rounded-md text-red-700 mb-6">
+      <div className="p-4 bg-destructive/10 border border-destructive/30 rounded-md text-destructive mb-6">
         <h3 className="font-bold">Error loading board</h3>
         <p>{error}</p>
       </div>
@@ -96,11 +96,34 @@ export default function KanbanBoard({ userId }: KanbanBoardProps) {
   return (
     <div className="mb-10">
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-slate-300">
-            {board.users?.length || 1} collaborator
-            {(board.users?.length || 1) > 1 ? "s" : ""}
-          </span>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <Filter className="h-4 w-4" />
+            Filters
+          </Button>
+          <Button
+            onClick={() => setIsAddingColumn(true)}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Add Column
+          </Button>
+        </div>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <Download className="h-4 w-4" />
+            Export
+          </Button>
         </div>
       </div>
 
@@ -114,7 +137,8 @@ export default function KanbanBoard({ userId }: KanbanBoardProps) {
             <div
               {...provided.droppableProps}
               ref={provided.innerRef}
-              className="flex gap-4 overflow-x-auto pb-4"
+              className="flex gap-5 overflow-x-auto pb-4 kanban-scrollbar"
+              style={{ paddingBottom: "16px" }}
             >
               {columns.map((column: Column, index: number) => (
                 <KanbanColumn key={column.id} column={column} index={index} />
@@ -122,7 +146,7 @@ export default function KanbanBoard({ userId }: KanbanBoardProps) {
               {provided.placeholder}
 
               {isAddingColumn ? (
-                <div className="shrink-0 w-72 bg-slate-700 rounded-lg p-3">
+                <div className="shrink-0 w-80 bg-card rounded-md p-3 border shadow-sm">
                   <Input
                     value={newColumnTitle}
                     onChange={(e) => setNewColumnTitle(e.target.value)}
@@ -147,16 +171,7 @@ export default function KanbanBoard({ userId }: KanbanBoardProps) {
                     </Button>
                   </div>
                 </div>
-              ) : (
-                <Button
-                  onClick={() => setIsAddingColumn(true)}
-                  variant="outline"
-                  className="shrink-0 h-12 border-dashed border-slate-600 text-slate-400 hover:text-white hover:border-white"
-                >
-                  <Plus className="h-5 w-5 mr-2" />
-                  Add Column
-                </Button>
-              )}
+              ) : null}
             </div>
           )}
         </Droppable>
