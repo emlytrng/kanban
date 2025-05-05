@@ -32,7 +32,7 @@ export async function createSupabaseClient() {
     });
   } catch (error) {
     console.error("Error creating server Supabase client:", error);
-    // Fall back to anonymous client if there's an error
+    // Fall back to anonymous client if there is an error
     return createClient<Database>(supabaseUrl, supabaseAnonKey);
   }
 }
