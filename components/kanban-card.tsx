@@ -77,10 +77,10 @@ function KanbanCard({ card, index, columnId }: KanbanCardProps) {
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className={`p-3 mb-2 bg-card rounded-md border shadow-sm transition-shadow duration-200 ${
+          className={`p-3 mb-3 bg-card border border-border rounded-lg transition-shadow duration-200 ${
             snapshot.isDragging
-              ? "shadow-lg ring-2 ring-primary/20 rotate-2 z-50"
-              : "hover:shadow-md"
+              ? "shadow-lg ring-2 ring-ring rotate-2 z-50 scale-105"
+              : "hover:shadow-md hover:border-muted-foreground/30"
           }`}
           style={{
             ...provided.draggableProps.style,
@@ -90,23 +90,27 @@ function KanbanCard({ card, index, columnId }: KanbanCardProps) {
           }}
         >
           {isEditing ? (
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Textarea
                 value={editedTitle}
                 onChange={(e) => setEditedTitle(e.target.value)}
                 placeholder="Card title"
-                className="resize-none"
+                className="resize-none bg-input border-border text-card-foreground placeholder:text-muted-foreground focus-visible:ring-ring"
                 autoFocus
               />
               <Textarea
                 value={editedDescription}
                 onChange={(e) => setEditedDescription(e.target.value)}
                 placeholder="Description (optional)"
-                className="resize-none text-sm"
+                className="resize-none text-sm bg-input border-border text-card-foreground placeholder:text-muted-foreground focus-visible:ring-ring"
                 rows={3}
               />
               <div className="flex gap-2">
-                <Button onClick={handleSaveEdit} size="sm">
+                <Button
+                  onClick={handleSaveEdit}
+                  size="sm"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                >
                   Save
                 </Button>
                 <Button
@@ -117,34 +121,43 @@ function KanbanCard({ card, index, columnId }: KanbanCardProps) {
                   }}
                   variant="ghost"
                   size="sm"
+                  className="text-muted-foreground hover:text-card-foreground hover:bg-accent"
                 >
                   Cancel
                 </Button>
               </div>
             </div>
           ) : (
-            <>
-              <div className="flex justify-between items-start">
-                <h4 className="font-medium">{card.title}</h4>
+            <div className="p-1">
+              <div className="flex justify-between items-start mb-2 gap-2">
+                <h4 className="font-medium text-card-foreground leading-tight">
+                  {card.title}
+                </h4>
                 {!snapshot.isDragging && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                        className="h-8 w-8 text-muted-foreground hover:text-card-foreground hover:bg-accent flex-shrink-0"
                       >
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                    <DropdownMenuContent
+                      align="end"
+                      className="bg-popover border-border"
+                    >
+                      <DropdownMenuItem
+                        onClick={() => setIsEditing(true)}
+                        className="hover:bg-accent focus:bg-accent text-popover-foreground"
+                      >
                         <Pencil className="h-4 w-4 mr-2" />
                         Edit Card
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={handleDeleteCard}
-                        className="text-destructive focus:text-destructive"
+                        className="text-destructive focus:text-destructive hover:bg-accent focus:bg-accent"
                       >
                         <Trash2 className="h-4 w-4 mr-2" />
                         Delete Card
@@ -155,12 +168,12 @@ function KanbanCard({ card, index, columnId }: KanbanCardProps) {
               </div>
 
               {card.description && (
-                <p className="text-sm text-muted-foreground mt-2 mb-3">
+                <p className="text-sm text-muted-foreground mb-3 leading-relaxed">
                   {card.description}
                 </p>
               )}
 
-              <div className="flex flex-wrap gap-1 mt-2 mb-2">
+              <div className="flex flex-wrap gap-1 mb-3">
                 {cardLabels.map((label, i) => (
                   <span key={i} className={`label label-${label}`}>
                     {label.charAt(0).toUpperCase() + label.slice(1)}
@@ -168,7 +181,7 @@ function KanbanCard({ card, index, columnId }: KanbanCardProps) {
                 ))}
               </div>
 
-              <div className="flex items-center justify-end mt-2 text-xs text-muted-foreground">
+              <div className="flex items-center text-xs text-muted-foreground">
                 <div className="flex items-center">
                   <Calendar className="h-3 w-3 mr-1" />
                   <span className={isPastDue ? "text-destructive" : ""}>
@@ -176,7 +189,7 @@ function KanbanCard({ card, index, columnId }: KanbanCardProps) {
                   </span>
                 </div>
               </div>
-            </>
+            </div>
           )}
         </div>
       )}

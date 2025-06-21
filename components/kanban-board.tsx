@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, type DropResult } from "@hello-pangea/dnd";
-import { Plus, Loader2, Filter, Bot } from "lucide-react";
+import { Plus, Loader2, Bot } from "lucide-react";
 import {
   useActions,
   useBoard,
@@ -96,17 +96,10 @@ export default function KanbanBoard({ userId }: KanbanBoardProps) {
   }
 
   return (
-    <div className="mb-10">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex items-center gap-2"
-          >
-            <Filter className="h-4 w-4" />
-            Filters
-          </Button>
+    <div className="h-screen bg-background text-foreground">
+      {/* Header */}
+      <div className="flex items-center justify-between p-6">
+        <div className="flex items-center gap-3">
           <Button
             onClick={() => setIsAddingColumn(true)}
             variant="outline"
@@ -116,68 +109,74 @@ export default function KanbanBoard({ userId }: KanbanBoardProps) {
             <Plus className="h-4 w-4" />
             Add Column
           </Button>
-        </div>
-        <div className="flex gap-2">
           <Button
             onClick={() => setIsChatOpen(true)}
-            className="flex items-center gap-2 bg-primary text-white"
-            size="sm"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 border-0"
           >
-            <Bot className="h-4 w-4" />
+            <Bot className="h-4 w-4 mr-2" />
             AI Assistant
           </Button>
         </div>
       </div>
 
-      <DragDropContext onDragEnd={handleDragEnd}>
-        <Droppable
-          droppableId="all-columns"
-          direction="horizontal"
-          type="column"
-        >
-          {(provided) => (
-            <div
-              {...provided.droppableProps}
-              ref={provided.innerRef}
-              className="flex gap-5 overflow-x-auto pb-4 kanban-scrollbar"
-              style={{ paddingBottom: "16px" }}
-            >
-              {columns.map((column: Column, index: number) => (
-                <KanbanColumn key={column.id} column={column} index={index} />
-              ))}
-              {provided.placeholder}
+      {/* Board */}
+      <div className="flex-1 overflow-x-auto overflow-y-hidden bg-background">
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Droppable droppableId="board" type="column" direction="horizontal">
+            {(provided) => (
+              <div
+                ref={provided.innerRef}
+                {...provided.droppableProps}
+                className="flex gap-6 p-6 h-full kanban-scrollbar"
+                style={{ minWidth: "max-content" }}
+              >
+                {columns.map((column, index) => (
+                  <KanbanColumn key={column.id} column={column} index={index} />
+                ))}
 
-              {isAddingColumn ? (
-                <div className="shrink-0 w-80 bg-card rounded-md p-3 border shadow-sm">
-                  <Input
-                    value={newColumnTitle}
-                    onChange={(e) => setNewColumnTitle(e.target.value)}
-                    placeholder="Enter column title..."
-                    className="mb-2"
-                    autoFocus
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") handleAddColumn();
-                      if (e.key === "Escape") setIsAddingColumn(false);
-                    }}
-                  />
-                  <div className="flex gap-2">
-                    <Button onClick={handleAddColumn} size="sm">
-                      Add Column
-                    </Button>
-                    <Button
-                      onClick={() => setIsAddingColumn(false)}
-                      variant="ghost"
-                      size="sm"
-                    >
-                      Cancel
-                    </Button>
-                  </div>
+                {/* Add Column */}
+                <div className="shrink-0 w-80">
+                  {isAddingColumn ? (
+                    <div className="bg-card border border-border rounded-md p-3">
+                      <Input
+                        value={newColumnTitle}
+                        onChange={(e) => setNewColumnTitle(e.target.value)}
+                        placeholder="Enter column title..."
+                        className="mb-2 bg-input border-border text-foreground placeholder:text-muted-foreground"
+                        autoFocus
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") handleAddColumn();
+                          if (e.key === "Escape") setIsAddingColumn(false);
+                        }}
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={handleAddColumn}
+                          size="sm"
+                          className="bg-primary text-primary-foreground hover:bg-primary/90"
+                        >
+                          Add Column
+                        </Button>
+                        <Button
+                          onClick={() => setIsAddingColumn(false)}
+                          variant="ghost"
+                          size="sm"
+                          className="text-muted-foreground hover:text-foreground hover:bg-muted"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
-              ) : null}
-            </div>
-          )}
-        </Droppable>
-      </DragDropContext>
+
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
+      </div>
+
       <ChatTaskManager
         isOpen={isChatOpen}
         onClose={() => setIsChatOpen(false)}

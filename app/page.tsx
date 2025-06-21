@@ -9,22 +9,35 @@ export default async function Home() {
 
   if (!session?.user) {
     return (
-      <main className="min-h-screen bg-background p-4 md:p-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl md:text-3xl font-bold">kanban</h1>
+      <main className="h-screen bg-background text-foreground flex flex-col">
+        {/* Header */}
+        <div className="px-6 py-4 flex-shrink-0">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold text-foreground">kanban</h1>
+            <div />
           </div>
+        </div>
 
+        <div className="max-w-7xl mx-auto">
           <div className="flex flex-col items-center justify-center mt-20 text-center">
             <p className="text-lg text-muted-foreground max-w-2xl mb-8">
               Organize your tasks, collaborate with your team, and boost your
-              productivity with our Kanban board.
+              productivity with our kanban board.
             </p>
             <div className="flex gap-4">
-              <Button asChild size="lg">
+              <Button
+                asChild
+                size="lg"
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
+              >
                 <a href="/auth/login?screen_hint=signup">Sign up</a>
               </Button>
-              <Button asChild variant="outline" size="lg">
+              <Button
+                asChild
+                variant="outline"
+                size="lg"
+                className="border-border text-foreground hover:bg-muted"
+              >
                 <a href="/auth/login">Log in</a>
               </Button>
             </div>
@@ -47,23 +60,29 @@ export default async function Home() {
   const hasBoards = boardMembers && boardMembers.length > 0;
 
   return (
-    <main className="min-h-screen bg-background p-4 md:p-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold">kanban</h1>
-          <Button asChild variant="outline">
+    <main className="h-screen bg-background text-foreground flex flex-col">
+      {/* Header */}
+      <div className="px-6 py-4 flex-shrink-0">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-foreground">kanban</h1>
+          <Button
+            asChild
+            variant="outline"
+            className="border-border text-foreground hover:bg-muted"
+          >
             <a href="/auth/logout">Log out</a>
           </Button>
         </div>
-
-        {hasBoards ? (
-          <KanbanBoard userId={userId} />
-        ) : (
-          <div className="mt-10">
-            <AddBoardForm userId={userId} />
-          </div>
-        )}
       </div>
+
+      {/* Main Content */}
+      {hasBoards ? (
+        <KanbanBoard userId={userId} />
+      ) : (
+        <div className="p-6">
+          <AddBoardForm userId={userId} />
+        </div>
+      )}
     </main>
   );
 }

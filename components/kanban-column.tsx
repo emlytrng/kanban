@@ -2,7 +2,7 @@
 
 import { useState, memo } from "react";
 import { Droppable, Draggable } from "@hello-pangea/dnd";
-import { Plus, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { Plus, MoreHorizontal, Trash2 } from "lucide-react";
 import { useActions } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,17 +43,21 @@ function KanbanColumn({ column, index }: KanbanColumnProps) {
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
-          className={`shrink-0 w-80 bg-muted/30 rounded-md p-3 ${
-            snapshot.isDragging ? "shadow-lg ring-2 ring-primary/20" : ""
+          className={`shrink-0 w-80 bg-card rounded-lg p-4 transition-all duration-200 bg-muted/50 rounded-md ${
+            snapshot.isDragging
+              ? "shadow-lg ring-2 ring-ring rotate-1"
+              : "shadow-sm"
           }`}
         >
           <div
             {...provided.dragHandleProps}
-            className="flex items-center justify-between mb-3 cursor-grab active:cursor-grabbing"
+            className="flex items-center justify-between mb-4 cursor-grab active:cursor-grabbing"
           >
             <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-sm">{column.title}</h3>
-              <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
+              <h3 className="font-semibold text-sm text-card-foreground">
+                {column.title}
+              </h3>
+              <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full border border-border">
                 {column.cards.length}
               </span>
             </div>
@@ -62,15 +66,18 @@ function KanbanColumn({ column, index }: KanbanColumnProps) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                  className="h-8 w-8 text-muted-foreground hover:text-card-foreground hover:bg-accent"
                 >
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent
+                align="end"
+                className="bg-popover border-border"
+              >
                 <DropdownMenuItem
                   onClick={handleDeleteColumn}
-                  className="text-destructive focus:text-destructive"
+                  className="text-destructive focus:text-destructive hover:bg-accent focus:bg-accent"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete Column
@@ -84,8 +91,10 @@ function KanbanColumn({ column, index }: KanbanColumnProps) {
               <div
                 ref={provided.innerRef}
                 {...provided.droppableProps}
-                className={`min-h-[200px] transition-colors duration-200 ${
-                  snapshot.isDraggingOver ? "bg-primary/5 rounded-md" : ""
+                className={`min-h-[200px] transition-colors duration-200 rounded-md ${
+                  snapshot.isDraggingOver
+                    ? "bg-accent/50 border border-border"
+                    : ""
                 }`}
               >
                 {column.cards.map((card, cardIndex) => (
@@ -102,12 +111,12 @@ function KanbanColumn({ column, index }: KanbanColumnProps) {
           </Droppable>
 
           {isAddingCard ? (
-            <div className="mt-2">
+            <div className="mt-3">
               <Input
                 value={newCardTitle}
                 onChange={(e) => setNewCardTitle(e.target.value)}
                 placeholder="Enter card title..."
-                className="mb-2"
+                className="mb-2 bg-input border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-ring"
                 autoFocus
                 onKeyDown={(e) => {
                   if (e.key === "Enter") handleAddCard();
@@ -115,13 +124,18 @@ function KanbanColumn({ column, index }: KanbanColumnProps) {
                 }}
               />
               <div className="flex gap-2">
-                <Button onClick={handleAddCard} size="sm">
+                <Button
+                  onClick={handleAddCard}
+                  size="sm"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                >
                   Add Card
                 </Button>
                 <Button
                   onClick={() => setIsAddingCard(false)}
                   variant="ghost"
                   size="sm"
+                  className="text-muted-foreground hover:text-card-foreground hover:bg-accent"
                 >
                   Cancel
                 </Button>
@@ -132,7 +146,7 @@ function KanbanColumn({ column, index }: KanbanColumnProps) {
               onClick={() => setIsAddingCard(true)}
               variant="ghost"
               size="sm"
-              className="w-full mt-2 justify-start text-muted-foreground hover:text-foreground"
+              className="w-full mt-3 justify-start text-muted-foreground hover:text-card-foreground hover:bg-accent border border-dashed border-border hover:border-muted-foreground/50 transition-colors"
             >
               <Plus className="h-4 w-4 mr-2" />
               Add a card

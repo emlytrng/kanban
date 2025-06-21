@@ -116,7 +116,7 @@ export async function POST(request: NextRequest) {
     const { object } = await generateObject({
       model: openai("gpt-4o"),
       schema: TaskOperationSchema,
-      prompt: `You are an AI assistant that helps users manage tasks in their Kanban board through natural language.
+      prompt: `You are an AI assistant that helps users manage tasks in their kanban board through natural language.
 
 Available columns: ${columnsInfo}
 Current tasks: ${tasksInfo}

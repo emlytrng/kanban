@@ -263,32 +263,32 @@ export default function ChatTaskManager({
     const getIcon = () => {
       switch (operation.type) {
         case "create":
-          return <Plus className="h-4 w-4 text-green-600" />;
+          return <Plus className="h-4 w-4 text-green-400" />;
         case "update":
         case "move":
-          return <Edit className="h-4 w-4 text-blue-600" />;
+          return <Edit className="h-4 w-4 text-blue-400" />;
         case "delete":
-          return <Trash2 className="h-4 w-4 text-red-600" />;
+          return <Trash2 className="h-4 w-4 text-red-400" />;
         case "query":
-          return <Search className="h-4 w-4 text-purple-600" />;
+          return <Search className="h-4 w-4 text-purple-400" />;
         default:
-          return <CheckCircle className="h-4 w-4 text-green-600" />;
+          return <CheckCircle className="h-4 w-4 text-green-400" />;
       }
     };
 
     const getColor = () => {
       switch (operation.type) {
         case "create":
-          return "text-green-600";
+          return "text-green-400";
         case "update":
         case "move":
-          return "text-blue-600";
+          return "text-blue-400";
         case "delete":
-          return "text-red-600";
+          return "text-red-400";
         case "query":
-          return "text-purple-600";
+          return "text-purple-400";
         default:
-          return "text-green-600";
+          return "text-green-400";
       }
     };
 
@@ -310,7 +310,7 @@ export default function ChatTaskManager({
     };
 
     return (
-      <div className="mt-3 p-3 bg-background rounded border">
+      <div className="mt-3 p-3 bg-card border border-border rounded-lg">
         <div className="flex items-center gap-2 mb-2">
           {getIcon()}
           <span className={cn("text-sm font-medium", getColor())}>
@@ -320,29 +320,41 @@ export default function ChatTaskManager({
 
         {operation.type === "create" && (
           <div className="text-sm">
-            <div className="font-medium">{operation.details.title}</div>
+            <div className="font-medium text-card-foreground">
+              {operation.details.title}
+            </div>
             <div className="text-muted-foreground mt-1">
               Added to{" "}
-              <Badge variant="outline">{operation.details.columnTitle}</Badge>
+              <Badge variant="outline" className="border-border">
+                {operation.details.columnTitle}
+              </Badge>
             </div>
           </div>
         )}
 
         {operation.type === "move" && (
           <div className="text-sm">
-            <div className="font-medium">{operation.details.taskTitle}</div>
+            <div className="font-medium text-card-foreground">
+              {operation.details.taskTitle}
+            </div>
             <div className="text-muted-foreground mt-1">
               Moved from{" "}
-              <Badge variant="outline">{operation.details.sourceColumn}</Badge>{" "}
+              <Badge variant="outline" className="border-border">
+                {operation.details.sourceColumn}
+              </Badge>{" "}
               to{" "}
-              <Badge variant="outline">{operation.details.targetColumn}</Badge>
+              <Badge variant="outline" className="border-border">
+                {operation.details.targetColumn}
+              </Badge>
             </div>
           </div>
         )}
 
         {operation.type === "delete" && (
           <div className="text-sm">
-            <div className="font-medium">{operation.details.taskTitle}</div>
+            <div className="font-medium text-card-foreground">
+              {operation.details.taskTitle}
+            </div>
             <div className="text-muted-foreground mt-1">
               Task has been deleted
             </div>
@@ -351,7 +363,9 @@ export default function ChatTaskManager({
 
         {operation.type === "update" && (
           <div className="text-sm">
-            <div className="font-medium">Task updated successfully</div>
+            <div className="font-medium text-card-foreground">
+              Task updated successfully
+            </div>
             <div className="text-muted-foreground mt-1">
               Changes have been applied
             </div>
@@ -360,15 +374,18 @@ export default function ChatTaskManager({
 
         {operation.type === "query" && operation.results && (
           <div className="text-sm space-y-2">
-            <div className="font-medium">
+            <div className="font-medium text-card-foreground">
               Found {operation.results.length} task(s)
             </div>
             {operation.results.slice(0, 5).map((task: any) => (
-              <div key={task.id} className="p-2 bg-muted rounded text-xs">
-                <div className="font-medium">{task.title}</div>
+              <div
+                key={task.id}
+                className="p-2 bg-muted rounded-md text-xs border border-border"
+              >
+                <div className="font-medium text-foreground">{task.title}</div>
                 <div className="text-muted-foreground mt-1">
                   In{" "}
-                  <Badge variant="outline" className="text-xs">
+                  <Badge variant="outline" className="text-xs border-border">
                     {task.columnTitle}
                   </Badge>
                   {task.assignee && (
@@ -395,20 +412,27 @@ export default function ChatTaskManager({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="w-full max-w-3xl h-[80vh] max-h-[700px] bg-background rounded-lg shadow-lg flex flex-col overflow-hidden">
+      <div className="w-full max-w-3xl h-[80vh] max-h-[700px] bg-background border border-border rounded-lg shadow-lg flex flex-col overflow-hidden">
         {/* Fixed Header */}
-        <div className="flex items-center justify-between p-6 border-b bg-background">
+        <div className="flex items-center justify-between p-6 border-b border-border bg-card">
           <div className="flex items-center gap-2">
             <Bot className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-semibold">AI Assistant</h2>
+            <h2 className="text-lg font-semibold text-card-foreground">
+              AI Task Manager
+            </h2>
           </div>
-          <Button variant="ghost" size="sm" onClick={onClose}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            className="text-muted-foreground hover:text-card-foreground hover:bg-accent"
+          >
             ×
           </Button>
         </div>
 
         {/* Scrollable Messages Area */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-6 bg-background">
           <div className="space-y-4">
             {messages.map((message) => (
               <div
@@ -429,7 +453,7 @@ export default function ChatTaskManager({
                     "max-w-[80%] rounded-lg px-4 py-2",
                     message.type === "user"
                       ? "bg-primary text-primary-foreground ml-auto"
-                      : "bg-muted"
+                      : "bg-muted text-muted-foreground"
                   )}
                 >
                   <div className="whitespace-pre-wrap text-sm">
@@ -438,14 +462,14 @@ export default function ChatTaskManager({
 
                   {renderOperationResult(message.operation)}
 
-                  <div className="text-xs text-muted-foreground mt-2">
+                  <div className="text-xs opacity-70 mt-2">
                     {message.timestamp.toLocaleTimeString()}
                   </div>
                 </div>
 
                 {message.type === "user" && (
                   <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center flex-shrink-0 mt-1">
-                    <User className="h-4 w-4" />
+                    <User className="h-4 w-4 text-secondary-foreground" />
                   </div>
                 )}
               </div>
@@ -458,7 +482,7 @@ export default function ChatTaskManager({
                 </div>
                 <div className="bg-muted rounded-lg px-4 py-2">
                   <div className="flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                     <span className="text-sm text-muted-foreground">
                       Processing...
                     </span>
@@ -471,7 +495,7 @@ export default function ChatTaskManager({
         </div>
 
         {/* Fixed Input Area */}
-        <div className="border-t p-4 bg-background">
+        <div className="border-t border-border p-4 bg-card">
           <form onSubmit={handleSubmit} className="flex gap-2">
             <Input
               ref={inputRef}
@@ -479,9 +503,13 @@ export default function ChatTaskManager({
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask me to create, find, update, or delete tasks..."
               disabled={isLoading}
-              className="flex-1"
+              className="flex-1 bg-input border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-ring"
             />
-            <Button type="submit" disabled={isLoading || !input.trim()}>
+            <Button
+              type="submit"
+              disabled={isLoading || !input.trim()}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
               <Send className="h-4 w-4" />
             </Button>
           </form>

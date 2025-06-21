@@ -42,7 +42,7 @@ export default function AddBoardForm({ userId }: AddBoardFormProps) {
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl">Create a new board</CardTitle>
         <CardDescription>
-          Get started by creating your first Kanban board
+          Get started by creating your first kanban board
         </CardDescription>
       </CardHeader>
       <CardContent>
