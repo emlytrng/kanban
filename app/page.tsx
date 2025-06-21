@@ -16,9 +16,6 @@ export default async function Home() {
           </div>
 
           <div className="flex flex-col items-center justify-center mt-20 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">
-              Welcome to kanban
-            </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mb-8">
               Organize your tasks, collaborate with your team, and boost your
               productivity with our Kanban board.

@@ -20,7 +20,7 @@ type AddBoardFormProps = {
 };
 
 export default function AddBoardForm({ userId }: AddBoardFormProps) {
-  const [title, setTitle] = useState("My kanban");
+  const [title, setTitle] = useState("kanban");
   const [isCreating, setIsCreating] = useState(false);
   const { addBoard } = useActions();
   const router = useRouter();
