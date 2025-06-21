@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, type DropResult } from "@hello-pangea/dnd";
-import { Plus, Loader2, Filter, Download } from "lucide-react";
+import { Plus, Loader2, Filter, Bot } from "lucide-react";
 import {
   useActions,
   useBoard,
@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Column } from "@/types";
 import KanbanColumn from "./kanban-column";
+import ChatTaskManager from "./chat-task-manager";
 
 type KanbanBoardProps = {
   userId: string;
@@ -28,6 +29,7 @@ export default function KanbanBoard({ userId }: KanbanBoardProps) {
 
   const [newColumnTitle, setNewColumnTitle] = useState("");
   const [isAddingColumn, setIsAddingColumn] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   useEffect(() => {
     async function fetchBoardData() {
@@ -117,12 +119,12 @@ export default function KanbanBoard({ userId }: KanbanBoardProps) {
         </div>
         <div className="flex gap-2">
           <Button
-            variant="outline"
+            onClick={() => setIsChatOpen(true)}
+            className="flex items-center gap-2 bg-primary text-white"
             size="sm"
-            className="flex items-center gap-2"
           >
-            <Download className="h-4 w-4" />
-            Export
+            <Bot className="h-4 w-4" />
+            AI Assistant
           </Button>
         </div>
       </div>
@@ -176,6 +178,10 @@ export default function KanbanBoard({ userId }: KanbanBoardProps) {
           )}
         </Droppable>
       </DragDropContext>
+      <ChatTaskManager
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+      />
     </div>
   );
 }

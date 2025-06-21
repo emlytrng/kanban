@@ -12,12 +12,12 @@ export default async function Home() {
       <main className="min-h-screen bg-background p-4 md:p-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl md:text-3xl font-bold">Kanban Board</h1>
+            <h1 className="text-2xl md:text-3xl font-bold">kanban</h1>
           </div>
 
           <div className="flex flex-col items-center justify-center mt-20 text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-6">
-              Welcome to Kanban Board
+              Welcome to kanban
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mb-8">
               Organize your tasks, collaborate with your team, and boost your
@@ -53,7 +53,7 @@ export default async function Home() {
     <main className="min-h-screen bg-background p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold">Kanban Board</h1>
+          <h1 className="text-2xl md:text-3xl font-bold">kanban</h1>
           <Button asChild variant="outline">
             <a href="/auth/logout">Log out</a>
           </Button>

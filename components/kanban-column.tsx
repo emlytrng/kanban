@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { Draggable, Droppable } from "@hello-pangea/dnd";
-import { MoreHorizontal, Plus } from "lucide-react";
+import { useState, memo } from "react";
+import { Droppable, Draggable } from "@hello-pangea/dnd";
+import { Plus, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { useActions } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { Card, Column } from "@/types";
+import type { Column } from "@/types";
 import KanbanCard from "./kanban-card";
 import {
   DropdownMenu,
@@ -20,7 +20,7 @@ interface KanbanColumnProps {
   index: number;
 }
 
-export default function KanbanColumn({ column, index }: KanbanColumnProps) {
+function KanbanColumn({ column, index }: KanbanColumnProps) {
   const { addCard, deleteColumn } = useActions();
   const [newCardTitle, setNewCardTitle] = useState("");
   const [isAddingCard, setIsAddingCard] = useState(false);
@@ -34,26 +34,29 @@ export default function KanbanColumn({ column, index }: KanbanColumnProps) {
   };
 
   const handleDeleteColumn = () => {
-    if (
-      confirm("Are you sure you want to delete this column and all its cards?")
-    ) {
-      deleteColumn(column.id);
-    }
+    deleteColumn(column.id);
   };
 
   return (
     <Draggable draggableId={column.id} index={index}>
-      {(provided) => (
+      {(provided, snapshot) => (
         <div
-          {...provided.draggableProps}
           ref={provided.innerRef}
-          className="shrink-0 w-80 bg-card rounded-md border shadow-sm kanban-column-transition"
+          {...provided.draggableProps}
+          className={`shrink-0 w-80 bg-muted/30 rounded-md p-3 ${
+            snapshot.isDragging ? "shadow-lg ring-2 ring-primary/20" : ""
+          }`}
         >
           <div
             {...provided.dragHandleProps}
-            className="p-3 font-medium flex items-center justify-between rounded-t-md border-b"
+            className="flex items-center justify-between mb-3 cursor-grab active:cursor-grabbing"
           >
-            <h3 className="font-medium">{column.title}</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold text-sm">{column.title}</h3>
+              <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
+                {column.cards.length}
+              </span>
+            </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -69,6 +72,7 @@ export default function KanbanColumn({ column, index }: KanbanColumnProps) {
                   onClick={handleDeleteColumn}
                   className="text-destructive focus:text-destructive"
                 >
+                  <Trash2 className="h-4 w-4 mr-2" />
                   Delete Column
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -78,65 +82,66 @@ export default function KanbanColumn({ column, index }: KanbanColumnProps) {
           <Droppable droppableId={column.id} type="card">
             {(provided, snapshot) => (
               <div
-                {...provided.droppableProps}
                 ref={provided.innerRef}
-                className={`p-2 min-h-[200px] max-h-[calc(100vh-220px)] overflow-y-auto kanban-scrollbar ${
-                  snapshot.isDraggingOver ? "bg-muted/50" : ""
+                {...provided.droppableProps}
+                className={`min-h-[200px] transition-colors duration-200 ${
+                  snapshot.isDraggingOver ? "bg-primary/5 rounded-md" : ""
                 }`}
-                style={{ transition: "background-color 0.2s ease" }}
               >
-                {column.cards.map((card: Card, index: number) => (
+                {column.cards.map((card, cardIndex) => (
                   <KanbanCard
                     key={card.id}
                     card={card}
-                    index={index}
+                    index={cardIndex}
                     columnId={column.id}
                   />
                 ))}
                 {provided.placeholder}
-
-                {isAddingCard ? (
-                  <div className="p-2 bg-card rounded-md mt-2 border">
-                    <Input
-                      value={newCardTitle}
-                      onChange={(e) => setNewCardTitle(e.target.value)}
-                      placeholder="Enter card title..."
-                      className="mb-2"
-                      autoFocus
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") handleAddCard();
-                        if (e.key === "Escape") setIsAddingCard(false);
-                      }}
-                    />
-                    <div className="flex gap-2">
-                      <Button onClick={handleAddCard} size="sm">
-                        Add Card
-                      </Button>
-                      <Button
-                        onClick={() => setIsAddingCard(false)}
-                        variant="ghost"
-                        size="sm"
-                      >
-                        Cancel
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <Button
-                    onClick={() => setIsAddingCard(true)}
-                    variant="ghost"
-                    className="w-full justify-center text-muted-foreground hover:text-foreground mt-2"
-                    size="sm"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Task
-                  </Button>
-                )}
               </div>
             )}
           </Droppable>
+
+          {isAddingCard ? (
+            <div className="mt-2">
+              <Input
+                value={newCardTitle}
+                onChange={(e) => setNewCardTitle(e.target.value)}
+                placeholder="Enter card title..."
+                className="mb-2"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleAddCard();
+                  if (e.key === "Escape") setIsAddingCard(false);
+                }}
+              />
+              <div className="flex gap-2">
+                <Button onClick={handleAddCard} size="sm">
+                  Add Card
+                </Button>
+                <Button
+                  onClick={() => setIsAddingCard(false)}
+                  variant="ghost"
+                  size="sm"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <Button
+              onClick={() => setIsAddingCard(true)}
+              variant="ghost"
+              size="sm"
+              className="w-full mt-2 justify-start text-muted-foreground hover:text-foreground"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add a card
+            </Button>
+          )}
         </div>
       )}
     </Draggable>
   );
 }
+
+export default memo(KanbanColumn);

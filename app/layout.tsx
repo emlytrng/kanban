@@ -9,7 +9,7 @@ import { Toaster } from "@/components/ui/toaster";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Kanban Board",
+  title: "kanban",
   description: "A Trello-like board with mock real-time collaboration",
 };
 

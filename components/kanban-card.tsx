@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, memo } from "react";
 import { Draggable } from "@hello-pangea/dnd";
 import { MoreHorizontal, Pencil, Trash2, Calendar } from "lucide-react";
 import { useActions } from "@/lib/store";
@@ -20,7 +20,7 @@ interface KanbanCardProps {
   columnId: string;
 }
 
-export default function KanbanCard({ card, index, columnId }: KanbanCardProps) {
+function KanbanCard({ card, index, columnId }: KanbanCardProps) {
   const { updateCard, deleteCard } = useActions();
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(card.title);
@@ -77,9 +77,17 @@ export default function KanbanCard({ card, index, columnId }: KanbanCardProps) {
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className={`p-3 mb-2 bg-card rounded-md border shadow-sm kanban-card-transition ${
-            snapshot.isDragging ? "shadow-md ring-1 ring-primary/20" : ""
+          className={`p-3 mb-2 bg-card rounded-md border shadow-sm transition-shadow duration-200 ${
+            snapshot.isDragging
+              ? "shadow-lg ring-2 ring-primary/20 rotate-2 z-50"
+              : "hover:shadow-md"
           }`}
+          style={{
+            ...provided.draggableProps.style,
+            transform: snapshot.isDragging
+              ? `${provided.draggableProps.style?.transform} rotate(2deg)`
+              : provided.draggableProps.style?.transform,
+          }}
         >
           {isEditing ? (
             <div className="space-y-2">
@@ -118,30 +126,32 @@ export default function KanbanCard({ card, index, columnId }: KanbanCardProps) {
             <>
               <div className="flex justify-between items-start">
                 <h4 className="font-medium">{card.title}</h4>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                    >
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => setIsEditing(true)}>
-                      <Pencil className="h-4 w-4 mr-2" />
-                      Edit Card
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={handleDeleteCard}
-                      className="text-destructive focus:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete Card
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                {!snapshot.isDragging && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                      >
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                        <Pencil className="h-4 w-4 mr-2" />
+                        Edit Card
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={handleDeleteCard}
+                        className="text-destructive focus:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete Card
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </div>
 
               {card.description && (
@@ -173,3 +183,5 @@ export default function KanbanCard({ card, index, columnId }: KanbanCardProps) {
     </Draggable>
   );
 }
+
+export default memo(KanbanCard);

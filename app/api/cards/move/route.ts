@@ -20,11 +20,16 @@ export async function POST(request: NextRequest) {
     // Get request body
     const { cardId, sourceColumnId, destinationColumnId, destinationIndex } =
       await request.json();
-    if (!cardId || !sourceColumnId || !destinationColumnId) {
+    if (
+      !cardId ||
+      !sourceColumnId ||
+      !destinationColumnId ||
+      destinationIndex === undefined
+    ) {
       return NextResponse.json(
         {
           error:
-            "Card ID, source column ID, and destination column ID are required",
+            "Card ID, source column ID, destination column ID, and destination index are required",
         },
         { status: 400 }
       );
@@ -32,8 +37,9 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createSupabaseClient();
 
-    // Update the card's column and position
-    const { error } = await supabase
+    // Start a transaction-like operation
+    // First, update the card's column
+    const { error: updateError } = await supabase
       .from("cards")
       .update({
         column_id: destinationColumnId,
@@ -42,65 +48,50 @@ export async function POST(request: NextRequest) {
       })
       .eq("id", cardId);
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (updateError) {
+      return NextResponse.json({ error: updateError.message }, { status: 500 });
     }
 
-    // Update positions of other cards in the destination column
-    const { data: destCards, error: destError } = await supabase
-      .from("cards")
-      .select("id, position")
-      .eq("column_id", destinationColumnId)
-      .order("position");
-
-    if (destError) {
-      return NextResponse.json({ error: destError.message }, { status: 500 });
-    }
-
-    // Reorder cards in destination column
-    const cardsToUpdate = destCards
-      .filter((card) => card.id !== cardId)
-      .map((card, index) => {
-        const newPosition = index >= destinationIndex ? index + 1 : index;
-        return {
-          id: card.id,
-          position: newPosition,
-        };
-      });
-
-    for (const card of cardsToUpdate) {
-      await supabase
-        .from("cards")
-        .update({ position: card.position })
-        .eq("id", card.id);
-    }
-
-    // If moving between columns, update positions in source column
+    // If moving between different columns, we need to update positions
     if (sourceColumnId !== destinationColumnId) {
+      // Get all cards in destination column and reorder them
+      const { data: destCards, error: destError } = await supabase
+        .from("cards")
+        .select("id")
+        .eq("column_id", destinationColumnId)
+        .order("position");
+
+      if (destError) {
+        return NextResponse.json({ error: destError.message }, { status: 500 });
+      }
+
+      // Update positions for cards that come after the inserted position
+      const updates = destCards
+        .filter((card) => card.id !== cardId)
+        .map((card, index) => {
+          const newPosition = index >= destinationIndex ? index + 1 : index;
+          return supabase
+            .from("cards")
+            .update({ position: newPosition })
+            .eq("id", card.id);
+        });
+
+      // Execute all updates
+      await Promise.all(updates);
+
+      // Reorder source column cards
       const { data: sourceCards, error: sourceError } = await supabase
         .from("cards")
-        .select("id, position")
+        .select("id")
         .eq("column_id", sourceColumnId)
         .order("position");
 
-      if (sourceError) {
-        return NextResponse.json(
-          { error: sourceError.message },
-          { status: 500 }
+      if (!sourceError && sourceCards) {
+        const sourceUpdates = sourceCards.map((card, index) =>
+          supabase.from("cards").update({ position: index }).eq("id", card.id)
         );
-      }
 
-      // Reorder cards in source column
-      const sourceCardsToUpdate = sourceCards.map((card, index) => ({
-        id: card.id,
-        position: index,
-      }));
-
-      for (const card of sourceCardsToUpdate) {
-        await supabase
-          .from("cards")
-          .update({ position: card.position })
-          .eq("id", card.id);
+        await Promise.all(sourceUpdates);
       }
     }
 

@@ -9,8 +9,10 @@ interface KanbanState {
   columns: Column[];
   isLoading: boolean;
   error: string | null;
+  isDragging: boolean;
 
   actions: {
+    setDragging: (isDragging: boolean) => void;
     fetchUserBoards: (userId: string) => Promise<KanbanState["boards"]>;
     fetchBoard: (userId: string, boardId?: string) => Promise<void>;
     addBoard: (title: string, userId: string) => Promise<string | null>;
@@ -31,19 +33,24 @@ interface KanbanState {
       destinationIndex: number,
       skipOptimistic?: boolean
     ) => void;
+    findTaskById: (taskId: string) => { task: Card; columnId: string } | null;
   };
 }
 
 export const useKanbanStore = create(
   subscribeWithSelector<KanbanState>((set, get) => ({
-    userId: null,
     board: null,
     boards: [],
     columns: [],
     isLoading: true,
     error: null,
+    isDragging: false,
 
     actions: {
+      setDragging: (isDragging: boolean) => {
+        set({ isDragging });
+      },
+
       fetchUserBoards: async (userId: string) => {
         set({ isLoading: true, error: null });
         try {
@@ -68,6 +75,7 @@ export const useKanbanStore = create(
             error: "Failed to fetch boards: " + error.message,
             isLoading: false,
           });
+          return [];
         }
       },
 
@@ -426,7 +434,48 @@ export const useKanbanStore = create(
         destinationIndex: number,
         skipOptimistic = false
       ) => {
-        const sourceColumn = get().columns.find(
+        // Skip API call if this is from a real-time update
+        if (skipOptimistic) {
+          set((state) => {
+            const newColumns = [...state.columns];
+            const sourceColumnIndex = newColumns.findIndex(
+              (col) => col.id === sourceColumnId
+            );
+            const destColumnIndex = newColumns.findIndex(
+              (col) => col.id === destinationColumnId
+            );
+
+            if (sourceColumnIndex === -1 || destColumnIndex === -1)
+              return state;
+
+            const sourceColumn = newColumns[sourceColumnIndex];
+            const card = sourceColumn.cards.find((c) => c.id === cardId);
+
+            if (!card) return state;
+
+            // Remove from source
+            newColumns[sourceColumnIndex] = {
+              ...sourceColumn,
+              cards: sourceColumn.cards.filter((c) => c.id !== cardId),
+            };
+
+            // Add to destination
+            const destColumn = newColumns[destColumnIndex];
+            const newDestCards = [...destColumn.cards];
+            newDestCards.splice(destinationIndex, 0, card);
+
+            newColumns[destColumnIndex] = {
+              ...destColumn,
+              cards: newDestCards,
+            };
+
+            return { columns: newColumns };
+          });
+          return;
+        }
+
+        const state = get();
+        const sourceColumn = state.columns.find(
           (col) => col.id === sourceColumnId
         );
         if (!sourceColumn) return;
@@ -434,33 +483,44 @@ export const useKanbanStore = create(
         const card = sourceColumn.cards.find((c) => c.id === cardId);
         if (!card) return;
 
-        // Apply the move in our local state
-        if (!skipOptimistic) {
-          set((state) => {
-            const newColumns = state.columns.map((col) => {
-              // Remove from source column
-              if (col.id === sourceColumnId) {
-                const newCards = [...col.cards];
-                newCards.splice(sourceIndex, 1);
-                return { ...col, cards: newCards };
-              }
+        // Store original state for rollback
+        const originalColumns = state.columns;
 
-              // Add to destination column
-              if (col.id === destinationColumnId) {
-                const newCards = [...col.cards];
-                newCards.splice(destinationIndex, 0, card);
-                return { ...col, cards: newCards };
-              }
+        // Apply optimistic update immediately
+        set((state) => {
+          const newColumns = [...state.columns];
+          const sourceColumnIndex = newColumns.findIndex(
+            (col) => col.id === sourceColumnId
+          );
+          const destColumnIndex = newColumns.findIndex(
+            (col) => col.id === destinationColumnId
+          );
 
-              return col;
-            });
+          if (sourceColumnIndex === -1 || destColumnIndex === -1) return state;
 
-            return { columns: newColumns };
-          });
-        }
+          // Remove from source column
+          const sourceColumn = newColumns[sourceColumnIndex];
+          const updatedSourceCards = sourceColumn.cards.filter(
+            (c) => c.id !== cardId
+          );
 
-        // Skip API call if this is from a real-time update
-        if (skipOptimistic) return;
+          newColumns[sourceColumnIndex] = {
+            ...sourceColumn,
+            cards: updatedSourceCards,
+          };
+
+          // Add to destination column
+          const destColumn = newColumns[destColumnIndex];
+          const updatedDestCards = [...destColumn.cards];
+          updatedDestCards.splice(destinationIndex, 0, card);
+
+          newColumns[destColumnIndex] = {
+            ...destColumn,
+            cards: updatedDestCards,
+          };
+
+          return { columns: newColumns };
+        });
 
         try {
           const response = await fetch("/api/cards/move", {
@@ -472,7 +532,6 @@ export const useKanbanStore = create(
               cardId,
               sourceColumnId,
               destinationColumnId,
-              sourceIndex,
               destinationIndex,
             }),
           });
@@ -482,17 +541,20 @@ export const useKanbanStore = create(
             throw new Error(errorData.error || "Failed to move card");
           }
         } catch (error) {
-          // Rollback on error - move the card back
           console.error("Error moving card:", error);
-          get().actions.moveCard(
-            cardId,
-            destinationColumnId,
-            sourceColumnId,
-            destinationIndex,
-            sourceIndex,
-            true
-          );
+          // Rollback to original state on error
+          set({ columns: originalColumns });
         }
+      },
+      findTaskById: (taskId: string) => {
+        const state = get();
+        for (const column of state.columns) {
+          const task = column.cards.find((card) => card.id === taskId);
+          if (task) {
+            return { task, columnId: column.id };
+          }
+        }
+        return null;
       },
     },
   }))
@@ -503,5 +565,6 @@ export const useBoards = () => useKanbanStore((state) => state.boards);
 export const useColumns = () => useKanbanStore((state) => state.columns);
 export const useIsLoading = () => useKanbanStore((state) => state.isLoading);
 export const useError = () => useKanbanStore((state) => state.error);
+export const useIsDragging = () => useKanbanStore((state) => state.isDragging);
 
 export const useActions = () => useKanbanStore((state) => state.actions);
