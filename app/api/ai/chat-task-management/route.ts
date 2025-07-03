@@ -40,12 +40,6 @@ const TaskOperationSchema = z.object({
           taskTitle: z
             .string()
             .optional()
-            .describe("Title of the task being modified"),
-
-          // For delete operations - add better task matching
-          taskTitle: z
-            .string()
-            .optional()
             .describe("Title or partial title of task to delete"),
           matchedTaskId: z
             .string()
@@ -106,7 +100,7 @@ export async function POST(request: NextRequest) {
       columns?.map((col: any) => `${col.id}: ${col.title}`).join(", ") || "";
     const tasksInfo =
       tasks
-        ?.slice(0, 20) // Limit to prevent token overflow
+        ?.slice(0, 20)
         ?.map(
           (task: any) =>
             `${task.id}: "${task.title}" (in ${task.columnTitle}, assigned to ${task.assignee || "unassigned"})`

@@ -1,37 +1,12 @@
 "use client";
 
-import type React from "react";
-
-import { useState, useRef, useEffect } from "react";
-import {
-  Send,
-  Bot,
-  User,
-  Loader2,
-  Plus,
-  Edit,
-  Trash2,
-  Search,
-  CheckCircle,
-} from "lucide-react";
+import { useState } from "react";
+import { Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { useActions, useColumns } from "@/lib/store";
-import { cn } from "@/lib/utils";
-import type { Card as TaskCard } from "@/types";
-
-interface ChatMessage {
-  id: string;
-  type: "user" | "assistant";
-  content: string;
-  timestamp: Date;
-  operation?: {
-    type: "create" | "update" | "delete" | "query" | "move";
-    details: any;
-    results?: TaskCard[];
-  };
-}
+import type { ChatMessage } from "@/types/chat";
+import ChatMessages from "./chat/chat-messages";
+import ChatInput from "./chat/chat-input";
 
 interface ChatTaskManagerProps {
   isOpen: boolean;
@@ -51,23 +26,10 @@ export default function ChatTaskManager({
       timestamp: new Date(),
     },
   ]);
-  const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   const { addCard, updateCard, deleteCard, moveCard } = useActions();
   const columns = useColumns();
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  useEffect(() => {
-    if (isOpen && inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, [isOpen]);
 
   const getAllTasks = () => {
     return columns.flatMap((column) =>
@@ -91,19 +53,15 @@ export default function ChatTaskManager({
     );
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || isLoading) return;
-
+  const handleSubmit = async (input: string) => {
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
       type: "user",
-      content: input.trim(),
+      content: input,
       timestamp: new Date(),
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    setInput("");
     setIsLoading(true);
 
     try {
@@ -115,7 +73,7 @@ export default function ChatTaskManager({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          message: input.trim(),
+          message: input,
           columns: columns.map((col) => ({ id: col.id, title: col.title })),
           tasks: allTasks,
         }),
@@ -128,7 +86,7 @@ export default function ChatTaskManager({
       const data = await response.json();
 
       // Execute the operation based on AI response
-      let operationResult = null;
+      let operationResult;
 
       switch (data.operation?.type) {
         case "create":
@@ -137,9 +95,9 @@ export default function ChatTaskManager({
             const targetColumn =
               columns.find((col) => col.id === columnId) || columns[0];
             if (targetColumn) {
-              await addCard(targetColumn.id, title);
+              addCard(targetColumn.id, title);
               operationResult = {
-                type: "create",
+                type: "create" as const,
                 details: { title, columnTitle: targetColumn.title },
               };
             }
@@ -150,7 +108,7 @@ export default function ChatTaskManager({
           if (data.operation.query) {
             const results = findTasksByQuery(data.operation.query);
             operationResult = {
-              type: "query",
+              type: "query" as const,
               details: { query: data.operation.query },
               results,
             };
@@ -163,7 +121,7 @@ export default function ChatTaskManager({
             if (updates) {
               await updateCard(columnId, taskId, updates);
               operationResult = {
-                type: "update",
+                type: "update" as const,
                 details: { taskId, updates },
               };
             }
@@ -186,7 +144,7 @@ export default function ChatTaskManager({
                 (card) => card.id === taskId
               );
               if (sourceIndex !== -1) {
-                await moveCard(
+                moveCard(
                   taskId,
                   sourceColumnId,
                   targetColumnId,
@@ -194,7 +152,7 @@ export default function ChatTaskManager({
                   targetColumn.cards.length
                 );
                 operationResult = {
-                  type: "move",
+                  type: "move" as const,
                   details: {
                     taskTitle,
                     sourceColumn: sourceColumn.title,
@@ -216,16 +174,16 @@ export default function ChatTaskManager({
                 task.title.toLowerCase().includes(taskTitle.toLowerCase())
               );
               if (foundTask) {
-                await deleteCard(foundTask.columnId, foundTask.id);
+                deleteCard(foundTask.columnId, foundTask.id);
                 operationResult = {
-                  type: "delete",
+                  type: "delete" as const,
                   details: { taskTitle: foundTask.title },
                 };
               }
             } else if (taskId && columnId) {
-              await deleteCard(columnId, taskId);
+              deleteCard(columnId, taskId);
               operationResult = {
-                type: "delete",
+                type: "delete" as const,
                 details: { taskTitle },
               };
             }
@@ -257,157 +215,6 @@ export default function ChatTaskManager({
     }
   };
 
-  const renderOperationResult = (operation: ChatMessage["operation"]) => {
-    if (!operation) return null;
-
-    const getIcon = () => {
-      switch (operation.type) {
-        case "create":
-          return <Plus className="h-4 w-4 text-green-400" />;
-        case "update":
-        case "move":
-          return <Edit className="h-4 w-4 text-blue-400" />;
-        case "delete":
-          return <Trash2 className="h-4 w-4 text-red-400" />;
-        case "query":
-          return <Search className="h-4 w-4 text-purple-400" />;
-        default:
-          return <CheckCircle className="h-4 w-4 text-green-400" />;
-      }
-    };
-
-    const getColor = () => {
-      switch (operation.type) {
-        case "create":
-          return "text-green-400";
-        case "update":
-        case "move":
-          return "text-blue-400";
-        case "delete":
-          return "text-red-400";
-        case "query":
-          return "text-purple-400";
-        default:
-          return "text-green-400";
-      }
-    };
-
-    const getTitle = () => {
-      switch (operation.type) {
-        case "create":
-          return "Task Created";
-        case "update":
-          return "Task Updated";
-        case "move":
-          return "Task Moved";
-        case "delete":
-          return "Task Deleted";
-        case "query":
-          return "Search Results";
-        default:
-          return "Operation Complete";
-      }
-    };
-
-    return (
-      <div className="mt-3 p-3 bg-card border border-border rounded-lg">
-        <div className="flex items-center gap-2 mb-2">
-          {getIcon()}
-          <span className={cn("text-sm font-medium", getColor())}>
-            {getTitle()}
-          </span>
-        </div>
-
-        {operation.type === "create" && (
-          <div className="text-sm">
-            <div className="font-medium text-card-foreground">
-              {operation.details.title}
-            </div>
-            <div className="text-muted-foreground mt-1">
-              Added to{" "}
-              <Badge variant="outline" className="border-border">
-                {operation.details.columnTitle}
-              </Badge>
-            </div>
-          </div>
-        )}
-
-        {operation.type === "move" && (
-          <div className="text-sm">
-            <div className="font-medium text-card-foreground">
-              {operation.details.taskTitle}
-            </div>
-            <div className="text-muted-foreground mt-1">
-              Moved from{" "}
-              <Badge variant="outline" className="border-border">
-                {operation.details.sourceColumn}
-              </Badge>{" "}
-              to{" "}
-              <Badge variant="outline" className="border-border">
-                {operation.details.targetColumn}
-              </Badge>
-            </div>
-          </div>
-        )}
-
-        {operation.type === "delete" && (
-          <div className="text-sm">
-            <div className="font-medium text-card-foreground">
-              {operation.details.taskTitle}
-            </div>
-            <div className="text-muted-foreground mt-1">
-              Task has been deleted
-            </div>
-          </div>
-        )}
-
-        {operation.type === "update" && (
-          <div className="text-sm">
-            <div className="font-medium text-card-foreground">
-              Task updated successfully
-            </div>
-            <div className="text-muted-foreground mt-1">
-              Changes have been applied
-            </div>
-          </div>
-        )}
-
-        {operation.type === "query" && operation.results && (
-          <div className="text-sm space-y-2">
-            <div className="font-medium text-card-foreground">
-              Found {operation.results.length} task(s)
-            </div>
-            {operation.results.slice(0, 5).map((task: any) => (
-              <div
-                key={task.id}
-                className="p-2 bg-muted rounded-md text-xs border border-border"
-              >
-                <div className="font-medium text-foreground">{task.title}</div>
-                <div className="text-muted-foreground mt-1">
-                  In{" "}
-                  <Badge variant="outline" className="text-xs border-border">
-                    {task.columnTitle}
-                  </Badge>
-                  {task.assignee && (
-                    <>
-                      {" • "}
-                      Assigned to {task.assignee}
-                    </>
-                  )}
-                </div>
-              </div>
-            ))}
-            {operation.results.length > 5 && (
-              <div className="text-muted-foreground text-xs">
-                And {operation.results.length - 5} more task(s)...
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    );
-  };
-
   if (!isOpen) return null;
 
   return (
@@ -431,94 +238,11 @@ export default function ChatTaskManager({
           </Button>
         </div>
 
-        {/* Scrollable Messages Area */}
-        <div className="flex-1 overflow-y-auto p-6 bg-background">
-          <div className="space-y-4">
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={cn(
-                  "flex gap-3",
-                  message.type === "user" ? "justify-end" : "justify-start"
-                )}
-              >
-                {message.type === "assistant" && (
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
-                    <Bot className="h-4 w-4 text-primary" />
-                  </div>
-                )}
+        {/* Messages Area */}
+        <ChatMessages messages={messages} isLoading={isLoading} />
 
-                <div
-                  className={cn(
-                    "max-w-[80%] rounded-lg px-4 py-2",
-                    message.type === "user"
-                      ? "bg-primary text-primary-foreground ml-auto"
-                      : "bg-muted text-muted-foreground"
-                  )}
-                >
-                  <div className="whitespace-pre-wrap text-sm">
-                    {message.content}
-                  </div>
-
-                  {renderOperationResult(message.operation)}
-
-                  <div className="text-xs opacity-70 mt-2">
-                    {message.timestamp.toLocaleTimeString()}
-                  </div>
-                </div>
-
-                {message.type === "user" && (
-                  <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center flex-shrink-0 mt-1">
-                    <User className="h-4 w-4 text-secondary-foreground" />
-                  </div>
-                )}
-              </div>
-            ))}
-
-            {isLoading && (
-              <div className="flex gap-3 justify-start">
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
-                  <Bot className="h-4 w-4 text-primary" />
-                </div>
-                <div className="bg-muted rounded-lg px-4 py-2">
-                  <div className="flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">
-                      Processing...
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-          <div ref={messagesEndRef} />
-        </div>
-
-        {/* Fixed Input Area */}
-        <div className="border-t border-border p-4 bg-card">
-          <form onSubmit={handleSubmit} className="flex gap-2">
-            <Input
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask me to create, find, update, or delete tasks..."
-              disabled={isLoading}
-              className="flex-1 bg-input border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-ring"
-            />
-            <Button
-              type="submit"
-              disabled={isLoading || !input.trim()}
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          </form>
-
-          <div className="mt-2 text-xs text-muted-foreground">
-            Try: "Show me all high-priority tasks" • "Move the login task to
-            Done" • "Delete completed tasks"
-          </div>
-        </div>
+        {/* Input Area */}
+        <ChatInput onSubmit={handleSubmit} isLoading={isLoading} />
       </div>
     </div>
   );
