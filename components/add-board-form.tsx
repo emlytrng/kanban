@@ -33,7 +33,7 @@ export default function AddBoardForm({ userId }: AddBoardFormProps) {
     setIsCreating(false);
 
     if (boardId) {
-      router.refresh();
+      router.push(`/board/${boardId}`);
     }
   };
 

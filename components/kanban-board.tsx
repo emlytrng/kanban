@@ -9,9 +9,10 @@ import ChatTaskManager from "./chat-task-manager";
 
 type KanbanBoardProps = {
   userId: string;
+  boardId: string;
 };
 
-export default function KanbanBoard({ userId }: KanbanBoardProps) {
+export default function KanbanBoard({ userId, boardId }: KanbanBoardProps) {
   const board = useBoard();
   const isLoading = useIsLoading();
   const error = useError();
@@ -21,16 +22,12 @@ export default function KanbanBoard({ userId }: KanbanBoardProps) {
 
   useEffect(() => {
     async function fetchBoardData() {
-      try {
-        const boards = await fetchUserBoards(userId);
-        await fetchBoard(userId, boards[0]?.id);
-      } catch (err) {
-        console.error("Error loading data:", err);
-      }
+      await fetchUserBoards(userId);
+      await fetchBoard(userId, boardId);
     }
 
     fetchBoardData();
-  }, [fetchBoard, fetchUserBoards, userId]);
+  }, [fetchBoard, fetchUserBoards, userId, boardId]);
 
   if (isLoading) {
     return (
@@ -55,7 +52,7 @@ export default function KanbanBoard({ userId }: KanbanBoardProps) {
 
   return (
     <div className="h-screen bg-background text-foreground">
-      <BoardHeader onOpenChat={() => setIsChatOpen(true)} />
+      <BoardHeader onOpenChat={() => setIsChatOpen(true)} userId={userId} />
       <BoardContent />
       <ChatTaskManager
         isOpen={isChatOpen}

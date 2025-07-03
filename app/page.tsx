@@ -1,8 +1,8 @@
-import KanbanBoard from "@/components/kanban-board";
 import AddBoardForm from "@/components/add-board-form";
 import { auth0 } from "@/lib/auth0";
 import { createSupabaseClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
+import { redirect } from "next/navigation";
 
 export default async function Home() {
   const session = await auth0.getSession();
@@ -36,7 +36,7 @@ export default async function Home() {
                 asChild
                 variant="outline"
                 size="lg"
-                className="border-border text-foreground hover:bg-muted"
+                className="border-border text-foreground hover:bg-muted bg-transparent"
               >
                 <a href="/auth/login">Log in</a>
               </Button>
@@ -48,7 +48,6 @@ export default async function Home() {
   }
 
   const supabase = await createSupabaseClient();
-
   const userId = session.user["user_id"];
 
   const { data: boardMembers } = await supabase
@@ -59,6 +58,11 @@ export default async function Home() {
 
   const hasBoards = boardMembers && boardMembers.length > 0;
 
+  if (hasBoards) {
+    // Redirect to the first board
+    redirect(`/board/${boardMembers[0].board_id}`);
+  }
+
   return (
     <main className="h-screen bg-background text-foreground flex flex-col">
       {/* Header */}
@@ -68,7 +72,7 @@ export default async function Home() {
           <Button
             asChild
             variant="outline"
-            className="border-border text-foreground hover:bg-muted"
+            className="border-border text-foreground hover:bg-muted bg-transparent"
           >
             <a href="/auth/logout">Log out</a>
           </Button>
@@ -76,13 +80,9 @@ export default async function Home() {
       </div>
 
       {/* Main Content */}
-      {hasBoards ? (
-        <KanbanBoard userId={userId} />
-      ) : (
-        <div className="p-6">
-          <AddBoardForm userId={userId} />
-        </div>
-      )}
+      <div className="p-6">
+        <AddBoardForm userId={userId} />
+      </div>
     </main>
   );
 }
