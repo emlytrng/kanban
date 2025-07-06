@@ -1,6 +1,7 @@
+import { v4 as uuidv4 } from "uuid";
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
-import { v4 as uuidv4 } from "uuid";
+
 import type { Board, Card, Column } from "@/types";
 
 interface KanbanState {
@@ -52,7 +53,7 @@ export const useKanbanStore = create(
         set({ isDragging });
       },
 
-      fetchUserBoards: async (userId: string) => {
+      fetchUserBoards: async () => {
         set({ isLoading: true, error: null });
         try {
           const response = await fetch("/api/boards");

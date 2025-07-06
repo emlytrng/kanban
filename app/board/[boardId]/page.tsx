@@ -1,8 +1,8 @@
-import KanbanBoard from "@/components/kanban-board";
-import { auth0 } from "@/lib/auth0";
-import { createSupabaseClient } from "@/lib/supabase";
-import { Button } from "@/components/ui/button";
 import { redirect } from "next/navigation";
+
+import KanbanBoard from "@/components/kanban-board";
+import { Button } from "@/components/ui/button";
+import { auth0 } from "@/lib/auth0";
 
 interface BoardPageProps {
   params: Promise<{

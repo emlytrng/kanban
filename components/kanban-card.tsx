@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, memo } from "react";
+
 import { Draggable } from "@hello-pangea/dnd";
 import { MoreHorizontal, Pencil, Trash2, Calendar } from "lucide-react";
-import { useActions } from "@/lib/store";
+
 import { Button } from "@/components/ui/button";
-import type { Card } from "@/types";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +13,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
+import { useActions } from "@/lib/store";
+import type { Card } from "@/types";
 
 interface KanbanCardProps {
   card: Card;

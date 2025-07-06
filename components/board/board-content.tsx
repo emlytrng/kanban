@@ -1,7 +1,9 @@
 "use client";
 
 import { DragDropContext, Droppable, type DropResult } from "@hello-pangea/dnd";
+
 import { useColumns, useActions } from "@/lib/store";
+
 import KanbanColumn from "../kanban-column";
 
 export default function BoardContent() {

@@ -1,8 +1,10 @@
 "use client";
 
 import { Bot, User } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 import type { ChatMessage as ChatMessageType } from "@/types/chat";
+
 import OperationResult from "./operation-result";
 
 interface ChatMessageProps {

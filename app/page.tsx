@@ -1,8 +1,9 @@
+import { redirect } from "next/navigation";
+
 import AddBoardForm from "@/components/add-board-form";
+import { Button } from "@/components/ui/button";
 import { auth0 } from "@/lib/auth0";
 import { createSupabaseClient } from "@/lib/supabase";
-import { Button } from "@/components/ui/button";
-import { redirect } from "next/navigation";
 
 export default async function Home() {
   const session = await auth0.getSession();

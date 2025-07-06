@@ -1,6 +1,7 @@
 "use client";
 
 import { Plus, Edit, Trash2, Search, CheckCircle } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { ChatMessage } from "@/types/chat";

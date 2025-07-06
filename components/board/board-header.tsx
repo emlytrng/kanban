@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Bot, ChevronDown, Trash2, MoreHorizontal } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useActions, useBoard, useBoards } from "@/lib/store";
+
 import { useRouter } from "next/navigation";
+
+import { Plus, Bot, ChevronDown } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +14,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { useActions, useBoard, useBoards } from "@/lib/store";
 
 interface BoardHeaderProps {
   onOpenChat: () => void;

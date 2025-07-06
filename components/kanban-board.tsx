@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+
 import { Loader2 } from "lucide-react";
+
 import { useActions, useBoard, useIsLoading, useError } from "@/lib/store";
-import BoardHeader from "./board/board-header";
+
 import BoardContent from "./board/board-content";
+import BoardHeader from "./board/board-header";
 import ChatTaskManager from "./chat-task-manager";
 
 type KanbanBoardProps = {

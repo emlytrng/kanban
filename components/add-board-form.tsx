@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+
 import { useRouter } from "next/navigation";
-import { useActions } from "@/lib/store";
+
+import { Loader2 } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
@@ -13,7 +15,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { useActions } from "@/lib/store";
 
 type AddBoardFormProps = {
   userId: string;

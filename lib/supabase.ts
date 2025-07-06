@@ -1,7 +1,9 @@
 import { createClient } from "@supabase/supabase-js";
-import type { Database } from "@/types/supabase";
-import { auth0 } from "./auth0";
 import jwt from "jsonwebtoken";
+
+import type { Database } from "@/types/supabase";
+
+import { auth0 } from "./auth0";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;

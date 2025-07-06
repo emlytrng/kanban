@@ -1,19 +1,22 @@
 "use client";
 
 import { useState, memo } from "react";
+
 import { Droppable, Draggable } from "@hello-pangea/dnd";
 import { Plus, MoreHorizontal, Trash2 } from "lucide-react";
-import { useActions } from "@/lib/store";
+
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import type { Column } from "@/types";
-import KanbanCard from "./kanban-card";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { useActions } from "@/lib/store";
+import type { Column } from "@/types";
+
+import KanbanCard from "./kanban-card";
 
 interface KanbanColumnProps {
   column: Column;

@@ -1,12 +1,15 @@
 "use client";
 
 import { useState } from "react";
+
 import { Bot } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { useActions, useColumns } from "@/lib/store";
 import type { ChatMessage } from "@/types/chat";
-import ChatMessages from "./chat/chat-messages";
+
 import ChatInput from "./chat/chat-input";
+import ChatMessages from "./chat/chat-messages";
 
 interface ChatTaskManagerProps {
   isOpen: boolean;
