@@ -22,7 +22,7 @@ interface KanbanState {
     moveColumn: (sourceIndex: number, destinationIndex: number) => void;
     addCard: (columnId: string, title: string) => void;
     updateCard: (
-      columnId: string,
+      columnId?: string,
       cardId: string,
       updates: Partial<Card>
     ) => void;
@@ -332,7 +332,7 @@ export const useKanbanStore = create(
       },
 
       updateCard: async (
-        columnId: string,
+        columnId?: string,
         cardId: string,
         updates: Partial<Card>
       ) => {

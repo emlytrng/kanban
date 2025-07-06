@@ -59,7 +59,7 @@ export default function KanbanBoard({ userId, boardId }: KanbanBoardProps) {
       <BoardContent />
       <ChatTaskManager
         isOpen={isChatOpen}
-        onClose={() => setIsChatOpen(false)}
+        onCloseAction={() => setIsChatOpen(false)}
       />
     </div>
   );

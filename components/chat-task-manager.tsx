@@ -6,19 +6,20 @@ import { Bot } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useActions, useColumns } from "@/lib/store";
-import type { ChatMessage } from "@/types/chat";
+import { TaskOperationResponse } from "@/schemas/task-operation-response";
+import type { ChatMessage, Task } from "@/types/chat";
 
 import ChatInput from "./chat/chat-input";
 import ChatMessages from "./chat/chat-messages";
 
 interface ChatTaskManagerProps {
   isOpen: boolean;
-  onClose: () => void;
+  onCloseAction: () => void;
 }
 
 export default function ChatTaskManager({
   isOpen,
-  onClose,
+  onCloseAction,
 }: ChatTaskManagerProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -34,7 +35,7 @@ export default function ChatTaskManager({
   const { addCard, updateCard, deleteCard, moveCard } = useActions();
   const columns = useColumns();
 
-  const getAllTasks = () => {
+  const getAllTasks = (): Task[] => {
     return columns.flatMap((column) =>
       column.cards.map((card) => ({
         ...card,
@@ -86,63 +87,82 @@ export default function ChatTaskManager({
         throw new Error("Failed to process message");
       }
 
-      const data = await response.json();
+      const data = (await response.json()) as TaskOperationResponse;
 
-      // Execute the operation based on AI response
       let operationResult;
 
-      switch (data.operation?.type) {
-        case "create":
-          if (data.operation.details) {
-            const { title, columnId } = data.operation.details;
-            const targetColumn =
-              columns.find((col) => col.id === columnId) || columns[0];
-            if (targetColumn) {
-              addCard(targetColumn.id, title);
+      try {
+        switch (data.operation?.type) {
+          case "create":
+            if (data.operation.details) {
+              const { title, columnId, columnTitle } = data.operation.details;
+
+              if (!title || !columnId || !columnTitle) {
+                throw new Error("Missing required fields for task creation");
+              }
+
+              addCard(columnId, title || "");
               operationResult = {
                 type: "create" as const,
-                details: { title, columnTitle: targetColumn.title },
+                details: { title, columnTitle },
               };
             }
-          }
-          break;
+            break;
 
-        case "query":
-          if (data.operation.query) {
-            const results = findTasksByQuery(data.operation.query);
-            operationResult = {
-              type: "query" as const,
-              details: { query: data.operation.query },
-              results,
-            };
-          }
-          break;
+          case "query":
+            if (data.operation.query) {
+              const taskResults = findTasksByQuery(data.operation.query);
+              operationResult = {
+                type: "query" as const,
+                taskResults,
+              };
+            }
+            break;
 
-        case "update":
-          if (data.operation.details) {
-            const { taskId, updates, columnId } = data.operation.details;
-            if (updates) {
+          case "update":
+            if (data.operation.details) {
+              const { taskId, columnId, updates } = data.operation.details;
+
+              if (!taskId || !updates) {
+                throw new Error("Missing required fields for task update");
+              }
+
               await updateCard(columnId, taskId, updates);
               operationResult = {
                 type: "update" as const,
-                details: { taskId, updates },
+                details: { taskId },
               };
             }
-          }
-          break;
+            break;
 
-        case "move":
-          if (data.operation.details) {
-            const { taskId, sourceColumnId, targetColumnId, taskTitle } =
-              data.operation.details;
-            const sourceColumn = columns.find(
-              (col) => col.id === sourceColumnId
-            );
-            const targetColumn = columns.find(
-              (col) => col.id === targetColumnId
-            );
+          case "move":
+            if (data.operation.details) {
+              const {
+                taskId,
+                title,
+                sourceColumnId,
+                targetColumnId,
+                sourceColumnTitle,
+                targetColumnTitle,
+              } = data.operation.details;
 
-            if (sourceColumn && targetColumn) {
+              const sourceColumn = columns.find(
+                (col) => col.id === sourceColumnId
+              );
+              const targetColumn = columns.find(
+                (col) => col.id === targetColumnId
+              );
+
+              if (
+                !taskId ||
+                !sourceColumnId ||
+                !targetColumnId ||
+                !sourceColumn ||
+                !targetColumn
+              ) {
+                throw new Error("Missing required fields for task move");
+              }
+
               const sourceIndex = sourceColumn.cards.findIndex(
                 (card) => card.id === taskId
               );
@@ -157,41 +177,33 @@ export default function ChatTaskManager({
                 operationResult = {
                   type: "move" as const,
                   details: {
-                    taskTitle,
-                    sourceColumn: sourceColumn.title,
-                    targetColumn: targetColumn.title,
+                    title,
+                    sourceColumnTitle,
+                    targetColumnTitle,
                   },
                 };
               }
             }
-          }
-          break;
+            break;
 
-        case "delete":
-          if (data.operation.details) {
-            const { taskId, columnId, taskTitle } = data.operation.details;
-            // Find the task if taskId is not provided
-            if (!taskId && taskTitle) {
-              const allTasks = getAllTasks();
-              const foundTask = allTasks.find((task) =>
-                task.title.toLowerCase().includes(taskTitle.toLowerCase())
-              );
-              if (foundTask) {
-                deleteCard(foundTask.columnId, foundTask.id);
-                operationResult = {
-                  type: "delete" as const,
-                  details: { taskTitle: foundTask.title },
-                };
+          case "delete":
+            if (data.operation.details) {
+              const { taskId, columnId, title } = data.operation.details;
+
+              if (!taskId || !columnId) {
+                throw new Error("Missing required fields for task deletion");
               }
-            } else if (taskId && columnId) {
+
               deleteCard(columnId, taskId);
               operationResult = {
                 type: "delete" as const,
-                details: { taskTitle },
+                details: { title },
               };
             }
-          }
-          break;
+            break;
+        }
+      } catch (error) {
+        console.error("Error processing operation:", error);
       }
 
       const assistantMessage: ChatMessage = {
@@ -223,7 +235,6 @@ export default function ChatTaskManager({
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="w-full max-w-3xl h-[80vh] max-h-[700px] bg-background border border-border rounded-lg shadow-lg flex flex-col overflow-hidden">
-        {/* Fixed Header */}
         <div className="flex items-center justify-between p-6 border-b border-border bg-card">
           <div className="flex items-center gap-2">
             <Bot className="h-5 w-5 text-primary" />
@@ -234,7 +245,7 @@ export default function ChatTaskManager({
           <Button
             variant="ghost"
             size="sm"
-            onClick={onClose}
+            onClick={onCloseAction}
             className="text-muted-foreground hover:text-card-foreground hover:bg-accent"
           >
             ×

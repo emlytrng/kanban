@@ -4,13 +4,13 @@ import { Plus, Edit, Trash2, Search, CheckCircle } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import type { ChatMessage } from "@/types/chat";
+import { ChatMessage } from "@/types/chat";
 
-interface OperationResultProps {
+export default function OperationResult({
+  operation,
+}: {
   operation: ChatMessage["operation"];
-}
-
-export default function OperationResult({ operation }: OperationResultProps) {
+}) {
   if (!operation) return null;
 
   const getIcon = () => {
@@ -85,56 +85,61 @@ export default function OperationResult({ operation }: OperationResultProps) {
 
       {operation.type === "update" && <UpdateOperationDetails />}
 
-      {operation.type === "query" && operation.results && (
-        <QueryOperationDetails
-          details={operation.details}
-          results={operation.results}
-        />
+      {operation.type === "query" && operation.taskResults && (
+        <QueryOperationDetails taskResults={operation.taskResults} />
       )}
     </div>
   );
 }
 
-function CreateOperationDetails({ details }: { details: any }) {
+function CreateOperationDetails({
+  details,
+}: {
+  details: NonNullable<ChatMessage["operation"]>["details"];
+}) {
   return (
     <div className="text-sm">
-      <div className="font-medium text-card-foreground">{details.title}</div>
+      <div className="font-medium text-card-foreground">{details?.title}</div>
       <div className="text-muted-foreground mt-1">
         Added to{" "}
         <Badge variant="outline" className="border-border">
-          {details.columnTitle}
+          {details?.columnTitle}
         </Badge>
       </div>
     </div>
   );
 }
 
-function MoveOperationDetails({ details }: { details: any }) {
+function MoveOperationDetails({
+  details,
+}: {
+  details: NonNullable<ChatMessage["operation"]>["details"];
+}) {
   return (
     <div className="text-sm">
-      <div className="font-medium text-card-foreground">
-        {details.taskTitle}
-      </div>
+      <div className="font-medium text-card-foreground">{details?.title}</div>
       <div className="text-muted-foreground mt-1">
         Moved from{" "}
         <Badge variant="outline" className="border-border">
-          {details.sourceColumn}
+          {details?.sourceColumnTitle}
         </Badge>{" "}
         to{" "}
         <Badge variant="outline" className="border-border">
-          {details.targetColumn}
+          {details?.targetColumnTitle}
         </Badge>
       </div>
     </div>
   );
 }
 
-function DeleteOperationDetails({ details }: { details: any }) {
+function DeleteOperationDetails({
+  details,
+}: {
+  details: NonNullable<ChatMessage["operation"]>["details"];
+}) {
   return (
     <div className="text-sm">
-      <div className="font-medium text-card-foreground">
-        {details.taskTitle}
-      </div>
+      <div className="font-medium text-card-foreground">{details?.title}</div>
       <div className="text-muted-foreground mt-1">Task has been deleted</div>
     </div>
   );
@@ -154,18 +159,16 @@ function UpdateOperationDetails() {
 }
 
 function QueryOperationDetails({
-  details,
-  results,
+  taskResults,
 }: {
-  details: any;
-  results: any[];
+  taskResults: NonNullable<ChatMessage["operation"]>["taskResults"];
 }) {
   return (
     <div className="text-sm space-y-2">
       <div className="font-medium text-card-foreground">
-        Found {results.length} task(s)
+        Found {taskResults?.length} task(s)
       </div>
-      {results.slice(0, 5).map((task: any) => (
+      {taskResults?.slice(0, 5).map((task) => (
         <div
           key={task.id}
           className="p-2 bg-muted rounded-md text-xs border border-border"
@@ -176,18 +179,12 @@ function QueryOperationDetails({
             <Badge variant="outline" className="text-xs border-border">
               {task.columnTitle}
             </Badge>
-            {task.assignee && (
-              <>
-                {" • "}
-                Assigned to {task.assignee}
-              </>
-            )}
           </div>
         </div>
       ))}
-      {results.length > 5 && (
+      {taskResults?.length && taskResults.length > 5 && (
         <div className="text-muted-foreground text-xs">
-          And {results.length - 5} more task(s)...
+          And {taskResults.length - 5} more task(s)...
         </div>
       )}
     </div>

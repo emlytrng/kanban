@@ -1,13 +1,27 @@
-import type { Card as TaskCard } from "./index";
+import { TaskOperationDetails } from "@/schemas/task-operation-response";
+
+type ChatType = "user" | "assistant";
+type OperationType = "create" | "update" | "delete" | "query" | "move";
+
+export type Task = {
+  id: string;
+  title: string;
+  description?: string;
+  assignee?: string;
+  columnId: string;
+  columnTitle: string;
+  createdAt: string;
+  updatedAt: string;
+};
 
 export interface ChatMessage {
   id: string;
-  type: "user" | "assistant";
+  type: ChatType;
   content: string;
   timestamp: Date;
   operation?: {
-    type: "create" | "update" | "delete" | "query" | "move";
-    details: any;
-    results?: TaskCard[];
+    type: OperationType;
+    details?: TaskOperationDetails;
+    taskResults?: Task[];
   };
 }
