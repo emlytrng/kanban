@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 
 import { withAuth } from "@/lib/auth-utils";
 import { createSupabaseClient } from "@/lib/supabase";
+import type { GetBoardResponse, ApiError } from "@/types/api";
 
 // GET /api/boards/[boardId] - Get a specific board with its columns and cards
 export const GET = withAuth(
@@ -9,11 +10,11 @@ export const GET = withAuth(
     _auth,
     _request: NextRequest,
     context?: { params: { boardId: string } }
-  ) => {
+  ): Promise<NextResponse<GetBoardResponse | ApiError>> => {
     try {
       const boardId = context?.params?.boardId;
       if (!boardId) {
-        return NextResponse.json(
+        return NextResponse.json<ApiError>(
           { error: "Board ID is required" },
           { status: 400 }
         );
@@ -29,7 +30,7 @@ export const GET = withAuth(
         .single();
 
       if (boardError) {
-        return NextResponse.json(
+        return NextResponse.json<ApiError>(
           { error: boardError.message },
           { status: 500 }
         );
@@ -59,7 +60,7 @@ export const GET = withAuth(
         .order("position", { ascending: true });
 
       if (columnsError) {
-        return NextResponse.json(
+        return NextResponse.json<ApiError>(
           { error: columnsError.message },
           { status: 500 }
         );
@@ -101,12 +102,15 @@ export const GET = withAuth(
         updatedAt: boardData.updated_at,
       };
 
-      return NextResponse.json({ board, columns });
+      return NextResponse.json<GetBoardResponse>({ board, columns });
     } catch (error: unknown) {
       console.error("Error fetching board:", error);
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error occurred";
-      return NextResponse.json({ error: errorMessage }, { status: 500 });
+      return NextResponse.json<ApiError>(
+        { error: errorMessage },
+        { status: 500 }
+      );
     }
   }
 );

@@ -2,6 +2,11 @@ import { type NextRequest, NextResponse } from "next/server";
 
 import { withAuth } from "@/lib/auth-utils";
 import { createSupabaseClient } from "@/lib/supabase";
+import type {
+  UpdateCardResponse,
+  DeleteCardResponse,
+  ApiError,
+} from "@/types/api";
 
 // PATCH /api/cards/[cardId] - Update a card
 export const PATCH = withAuth(
@@ -9,11 +14,11 @@ export const PATCH = withAuth(
     auth,
     request: NextRequest,
     context?: { params: { cardId: string } }
-  ) => {
+  ): Promise<NextResponse<UpdateCardResponse | ApiError>> => {
     try {
       const cardId = context?.params?.cardId;
       if (!cardId) {
-        return NextResponse.json(
+        return NextResponse.json<ApiError>(
           { error: "Card ID is required" },
           { status: 400 }
         );
@@ -42,18 +47,17 @@ export const PATCH = withAuth(
         .single();
 
       if (updateError) {
-        return NextResponse.json(
+        return NextResponse.json<ApiError>(
           { error: updateError.message },
           { status: 500 }
         );
       }
 
-      return NextResponse.json({
+      return NextResponse.json<UpdateCardResponse>({
         card: {
           id: updatedCard.id,
           title: updatedCard.title,
           description: updatedCard.description || "",
-          assignee: "You", // Default assignee
           createdAt: updatedCard.created_at,
           updatedAt: updatedCard.updated_at,
         },
@@ -62,7 +66,10 @@ export const PATCH = withAuth(
       console.error("Error updating card:", error);
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error occurred";
-      return NextResponse.json({ error: errorMessage }, { status: 500 });
+      return NextResponse.json<ApiError>(
+        { error: errorMessage },
+        { status: 500 }
+      );
     }
   }
 );
@@ -73,11 +80,11 @@ export const DELETE = withAuth(
     auth,
     request: NextRequest,
     context?: { params: { cardId: string } }
-  ) => {
+  ): Promise<NextResponse<DeleteCardResponse | ApiError>> => {
     try {
       const cardId = context?.params?.cardId;
       if (!cardId) {
-        return NextResponse.json(
+        return NextResponse.json<ApiError>(
           { error: "Card ID is required" },
           { status: 400 }
         );
@@ -92,18 +99,21 @@ export const DELETE = withAuth(
         .eq("id", cardId);
 
       if (deleteError) {
-        return NextResponse.json(
+        return NextResponse.json<ApiError>(
           { error: deleteError.message },
           { status: 500 }
         );
       }
 
-      return NextResponse.json({ success: true });
+      return NextResponse.json<DeleteCardResponse>({ success: true });
     } catch (error: unknown) {
       console.error("Error deleting card:", error);
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error occurred";
-      return NextResponse.json({ error: errorMessage }, { status: 500 });
+      return NextResponse.json<ApiError>(
+        { error: errorMessage },
+        { status: 500 }
+      );
     }
   }
 );

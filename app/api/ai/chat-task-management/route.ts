@@ -5,15 +5,18 @@ import { generateObject } from "ai";
 
 import { AI_TASK_MANAGER_PROMPT } from "@/lib/ai-task-manager-prompt";
 import { TaskOperationResponseSchema } from "@/schemas/task-operation-response";
-import { Column } from "@/types";
-import { Task } from "@/types/chat";
+import type { Column } from "@/types";
+import type { ChatTaskManagementResponse, ApiError } from "@/types/api";
+import type { Task } from "@/types/chat";
 
-export async function POST(request: NextRequest) {
+export async function POST(
+  request: NextRequest
+): Promise<NextResponse<ChatTaskManagementResponse | ApiError>> {
   try {
     const { message, columns, tasks } = await request.json();
 
     if (!message || typeof message !== "string") {
-      return NextResponse.json(
+      return NextResponse.json<ApiError>(
         { error: "Message is required" },
         { status: 400 }
       );
@@ -45,10 +48,10 @@ export async function POST(request: NextRequest) {
       prompt,
     });
 
-    return NextResponse.json(object);
+    return NextResponse.json<ChatTaskManagementResponse>(object);
   } catch (error) {
     console.error("Error in chat task management:", error);
-    return NextResponse.json(
+    return NextResponse.json<ApiError>(
       { error: "Failed to process message" },
       { status: 500 }
     );

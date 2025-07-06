@@ -2,8 +2,17 @@ import { v4 as uuidv4 } from "uuid";
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 
-import { TaskOperationResponse } from "@/schemas/task-operation-response";
+import type { TaskOperationResponse } from "@/schemas/task-operation-response";
 import type { Board, Card, Column } from "@/types";
+import type {
+  GetBoardsResponse,
+  CreateBoardResponse,
+  GetBoardResponse,
+  CreateCardResponse,
+  UpdateCardResponse,
+  CreateColumnResponse,
+  ChatTaskManagementResponse,
+} from "@/types/api";
 
 interface KanbanState {
   board: Board | null;
@@ -69,14 +78,14 @@ export const useKanbanStore = create(
             throw new Error(errorData.error || "Failed to fetch boards");
           }
 
-          const { boards } = await response.json();
+          const data: GetBoardsResponse = await response.json();
 
           set({
-            boards: boards || [],
+            boards: data.boards || [],
             isLoading: false,
           });
 
-          return boards;
+          return data.boards;
         } catch (error: any) {
           console.error("Error fetching user boards:", error);
           set({
@@ -103,11 +112,11 @@ export const useKanbanStore = create(
             throw new Error(errorData.error || "Failed to fetch board");
           }
 
-          const { board, columns } = await response.json();
+          const data: GetBoardResponse = await response.json();
 
           set({
-            board,
-            columns,
+            board: data.board,
+            columns: data.columns,
             isLoading: false,
           });
         } catch (error: any) {
@@ -134,13 +143,13 @@ export const useKanbanStore = create(
             throw new Error(errorData.error || "Failed to create board");
           }
 
-          const { boardId } = await response.json();
+          const data: CreateBoardResponse = await response.json();
 
           // Update the boards list
           await get().actions.fetchUserBoards(userId);
 
           // Return the new board ID
-          return boardId;
+          return data.boardId;
         } catch (error: any) {
           console.error("Error creating board:", error);
           return null;
@@ -185,12 +194,12 @@ export const useKanbanStore = create(
             throw new Error(errorData.error || "Failed to add column");
           }
 
-          const { column } = await response.json();
+          const data: CreateColumnResponse = await response.json();
 
           // Update with the actual column ID from the server
           set((state) => ({
             columns: state.columns.map((col) =>
-              col.id === newColumn.id ? { ...col, id: column.id } : col
+              col.id === newColumn.id ? { ...col, id: data.column.id } : col
             ),
           }));
         } catch (error) {
@@ -304,7 +313,7 @@ export const useKanbanStore = create(
             throw new Error(errorData.error || "Failed to add card");
           }
 
-          const { card } = await response.json();
+          const data: CreateCardResponse = await response.json();
 
           // Update with the actual card ID from the server
           set((state) => ({
@@ -313,7 +322,7 @@ export const useKanbanStore = create(
                 return {
                   ...col,
                   cards: col.cards.map((c) =>
-                    c.id === newCard.id ? { ...c, id: card.id } : c
+                    c.id === newCard.id ? { ...c, id: data.card.id } : c
                   ),
                 };
               }
@@ -384,6 +393,8 @@ export const useKanbanStore = create(
             const errorData = await response.json();
             throw new Error(errorData.error || "Failed to update card");
           }
+
+          const data: UpdateCardResponse = await response.json();
         } catch (error) {
           // Rollback on error
           if (originalCard) {
@@ -614,7 +625,8 @@ export const useKanbanStore = create(
         if (!response.ok) {
           throw new Error("Failed to process message");
         }
-        return (await response.json()) as TaskOperationResponse;
+        const data: ChatTaskManagementResponse = await response.json();
+        return data;
       },
     },
   }))
