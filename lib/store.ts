@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from "uuid";
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 
+import { TaskOperationResponse } from "@/schemas/task-operation-response";
 import type { Board, Card, Column } from "@/types";
 
 interface KanbanState {
@@ -22,9 +23,9 @@ interface KanbanState {
     moveColumn: (sourceIndex: number, destinationIndex: number) => void;
     addCard: (columnId: string, title: string) => void;
     updateCard: (
-      columnId?: string,
       cardId: string,
-      updates: Partial<Card>
+      updates: Partial<Card>,
+      columnId?: string
     ) => void;
     deleteCard: (columnId: string, cardId: string) => void;
     moveCard: (
@@ -36,6 +37,11 @@ interface KanbanState {
       skipOptimistic?: boolean
     ) => void;
     findTaskById: (taskId: string) => { task: Card; columnId: string } | null;
+    chatWithAITaskManager: (
+      input: string,
+      columns: Column[],
+      getAllTasks: () => Card[]
+    ) => Promise<TaskOperationResponse>;
   };
 }
 
@@ -332,9 +338,9 @@ export const useKanbanStore = create(
       },
 
       updateCard: async (
-        columnId?: string,
         cardId: string,
-        updates: Partial<Card>
+        updates: Partial<Card>,
+        columnId?: string
       ) => {
         const originalCard = get()
           .columns.find((col) => col.id === columnId)
@@ -586,6 +592,29 @@ export const useKanbanStore = create(
           }
         }
         return null;
+      },
+
+      chatWithAITaskManager: async (
+        input: string,
+        columns: Column[],
+        getAllTasks: () => Card[]
+      ) => {
+        const allTasks = getAllTasks();
+        const response = await fetch("/api/ai/chat-task-management", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            message: input,
+            columns: columns.map((col) => ({ id: col.id, title: col.title })),
+            tasks: allTasks,
+          }),
+        });
+        if (!response.ok) {
+          throw new Error("Failed to process message");
+        }
+        return (await response.json()) as TaskOperationResponse;
       },
     },
   }))

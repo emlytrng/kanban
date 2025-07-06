@@ -32,10 +32,14 @@ function KanbanCard({ card, index, columnId }: KanbanCardProps) {
 
   const handleSaveEdit = () => {
     if (editedTitle.trim()) {
-      updateCard(columnId, card.id, {
-        title: editedTitle.trim(),
-        description: editedDescription.trim(),
-      });
+      updateCard(
+        card.id,
+        {
+          title: editedTitle.trim(),
+          description: editedDescription.trim(),
+        },
+        columnId
+      );
       setIsEditing(false);
     }
   };

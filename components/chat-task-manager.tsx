@@ -32,7 +32,8 @@ export default function ChatTaskManager({
   ]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { addCard, updateCard, deleteCard, moveCard } = useActions();
+  const { addCard, updateCard, deleteCard, moveCard, chatWithAITaskManager } =
+    useActions();
   const columns = useColumns();
 
   const getAllTasks = (): Task[] => {
@@ -69,25 +70,12 @@ export default function ChatTaskManager({
     setIsLoading(true);
 
     try {
-      const allTasks = getAllTasks();
-
-      const response = await fetch("/api/ai/chat-task-management", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: input,
-          columns: columns.map((col) => ({ id: col.id, title: col.title })),
-          tasks: allTasks,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to process message");
-      }
-
-      const data = (await response.json()) as TaskOperationResponse;
+      // Use the store action instead of direct fetch
+      const data = (await chatWithAITaskManager(
+        input,
+        columns,
+        getAllTasks
+      )) as TaskOperationResponse;
 
       let operationResult;
 
@@ -97,7 +85,7 @@ export default function ChatTaskManager({
             if (data.operation.details) {
               const { title, columnId, columnTitle } = data.operation.details;
 
-              if (!title || !columnId || !columnTitle) {
+              if (!title || !columnId) {
                 throw new Error("Missing required fields for task creation");
               }
 
@@ -127,7 +115,7 @@ export default function ChatTaskManager({
                 throw new Error("Missing required fields for task update");
               }
 
-              await updateCard(columnId, taskId, updates);
+              await updateCard(taskId, updates, columnId);
               operationResult = {
                 type: "update" as const,
                 details: { taskId },
