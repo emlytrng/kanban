@@ -18,6 +18,7 @@ interface KanbanState {
     addBoard: (title: string, userId: string) => Promise<string | null>;
     addColumn: (title: string) => void;
     deleteColumn: (columnId: string) => void;
+    moveColumn: (sourceIndex: number, destinationIndex: number) => void;
     addCard: (columnId: string, title: string) => void;
     updateCard: (
       columnId: string,
@@ -219,6 +220,34 @@ export const useKanbanStore = create(
             }));
           }
           console.error("Error deleting column:", error);
+        }
+      },
+
+      moveColumn: async (sourceIndex: number, destinationIndex: number) => {
+        const { columns } = get();
+        const originalColumns = [...columns]; // Store original state
+
+        const newColumns = [...columns];
+        const [movedColumn] = newColumns.splice(sourceIndex, 1);
+        newColumns.splice(destinationIndex, 0, movedColumn);
+
+        set({ columns: newColumns });
+
+        try {
+          const response = await fetch("/api/columns", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ columns: newColumns }),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Failed to reorder columns");
+          }
+        } catch (error) {
+          console.error("Error reordering columns:", error);
+          // Rollback to original state
+          set({ columns: originalColumns, error: "Failed to reorder columns" });
         }
       },
 
@@ -546,6 +575,7 @@ export const useKanbanStore = create(
           set({ columns: originalColumns });
         }
       },
+
       findTaskById: (taskId: string) => {
         const state = get();
         for (const column of state.columns) {

@@ -35,7 +35,7 @@ export async function GET(
       return NextResponse.json({ error: boardError.message }, { status: 500 });
     }
 
-    // Fetch columns for this board
+    // Fetch columns for this board, ordered by position
     const { data: columnsData, error: columnsError } = await supabase
       .from("columns")
       .select(
@@ -56,7 +56,7 @@ export async function GET(
       `
       )
       .eq("board_id", boardId)
-      .order("position");
+      .order("position", { ascending: true });
 
     if (columnsError) {
       return NextResponse.json(

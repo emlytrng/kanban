@@ -6,10 +6,10 @@ import KanbanColumn from "../kanban-column";
 
 export default function BoardContent() {
   const columns = useColumns();
-  const { moveCard } = useActions();
+  const { moveCard, moveColumn } = useActions();
 
   const handleDragEnd = (result: DropResult) => {
-    const { destination, source, draggableId } = result;
+    const { destination, source, draggableId, type } = result;
 
     // Dropped outside the list
     if (!destination) return;
@@ -20,6 +20,11 @@ export default function BoardContent() {
       destination.index === source.index
     )
       return;
+
+    if (type === "column") {
+      moveColumn(source.index, destination.index);
+      return;
+    }
 
     moveCard(
       draggableId,

@@ -72,3 +72,47 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
+// PUT /api/columns/reorder - Update column positions
+export async function PUT(request: NextRequest) {
+  try {
+    const session = await auth0.getSession();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const supabase = await createSupabaseClient();
+
+    const userId = session.user["user_id"];
+    if (!userId) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const { columns } = await request.json();
+    if (!columns || !Array.isArray(columns)) {
+      return NextResponse.json(
+        { error: "Invalid columns data" },
+        { status: 400 }
+      );
+    }
+
+    const updates = columns.map((column, index) =>
+      supabase.from("columns").update({ position: index }).eq("id", column.id)
+    );
+
+    const results = await Promise.all(updates);
+
+    const errors = results.filter((result) => result.error);
+    if (errors.length > 0) {
+      return NextResponse.json(
+        { error: "Failed to update column positions" },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    console.error("Error reordering columns:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}

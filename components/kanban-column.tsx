@@ -43,7 +43,7 @@ function KanbanColumn({ column, index }: KanbanColumnProps) {
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
-          className={`shrink-0 w-80 bg-card rounded-lg p-4 transition-all duration-200 bg-muted/50 rounded-md ${
+          className={`shrink-0 w-80 bg-card rounded-lg p-4 transition-colors duration-200 bg-muted/50 rounded-md ${
             snapshot.isDragging
               ? "shadow-lg ring-2 ring-ring rotate-1"
               : "shadow-sm"
