@@ -1,27 +1,17 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-import { auth0 } from "@/lib/auth0";
+import { withAuth } from "@/lib/auth-utils";
 import { createSupabaseClient } from "@/lib/supabase";
 
 // GET /api/boards - Get all boards for the authenticated user
-export async function GET(request: NextRequest) {
+export const GET = withAuth(async (auth, _request: NextRequest) => {
   try {
-    const session = await auth0.getSession();
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const supabase = await createSupabaseClient();
-
-    const userId = session.user["user_id"];
-    if (!userId) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
 
     const { data: boardMembers, error: membersError } = await supabase
       .from("board_members")
       .select("board_id")
-      .eq("user_id", userId)
+      .eq("user_id", auth.userId)
       .order("updated_at", { ascending: false });
 
     if (membersError) {
@@ -55,35 +45,29 @@ export async function GET(request: NextRequest) {
     }));
 
     return NextResponse.json({ boards });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error fetching boards:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
-}
+});
 
 // POST /api/boards - Create a new board
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (_auth, request: NextRequest) => {
   try {
-    const session = await auth0.getSession();
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const supabase = await createSupabaseClient();
-
-    const userId = session.user["user_id"];
-    if (!userId) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
     const { title } = await request.json();
     if (!title) {
       return NextResponse.json({ error: "Title is required" }, { status: 400 });
     }
 
+    const supabase = await createSupabaseClient();
+
     const { data: newBoardId, error: rpcError } = await supabase.rpc(
       "create_board_with_defaults",
-      { board_title: title.trim() }
+      {
+        board_title: title.trim(),
+      }
     );
 
     if (rpcError) {
@@ -91,8 +75,10 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ boardId: newBoardId });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error creating board:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
-}
+});

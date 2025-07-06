@@ -1,25 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-import { auth0 } from "@/lib/auth0";
+import { withAuth } from "@/lib/auth-utils";
 import { createSupabaseClient } from "@/lib/supabase";
 
 // POST /api/columns - Create a new column
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (auth, request: NextRequest) => {
   try {
-    // Check if user is authenticated
-    const session = await auth0.getSession();
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const supabase = await createSupabaseClient();
-
-    // Get user ID from Auth0 ID
-    const userId = session.user["user_id"];
-    if (!userId) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
     // Get request body
     const { boardId, title, position } = await request.json();
     if (!boardId || !title) {
@@ -29,12 +15,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const supabase = await createSupabaseClient();
+
     // Check if user is a member of this board
     const { data: boardMember, error: memberError } = await supabase
       .from("board_members")
       .select("*")
       .eq("board_id", boardId)
-      .eq("user_id", userId)
+      .eq("user_id", auth.userId)
       .single();
 
     if (memberError || !boardMember) {
@@ -68,27 +56,17 @@ export async function POST(request: NextRequest) {
         updatedAt: newColumn.updated_at,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error creating column:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
-}
+});
 
 // PUT /api/columns/reorder - Update column positions
-export async function PUT(request: NextRequest) {
+export const PUT = withAuth(async (auth, request: NextRequest) => {
   try {
-    const session = await auth0.getSession();
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const supabase = await createSupabaseClient();
-
-    const userId = session.user["user_id"];
-    if (!userId) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
     const { columns } = await request.json();
     if (!columns || !Array.isArray(columns)) {
       return NextResponse.json(
@@ -96,6 +74,8 @@ export async function PUT(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    const supabase = await createSupabaseClient();
 
     const updates = columns.map((column, index) =>
       supabase.from("columns").update({ position: index }).eq("id", column.id)
@@ -112,8 +92,10 @@ export async function PUT(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error reordering columns:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
-}
+});

@@ -1,25 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-import { auth0 } from "@/lib/auth0";
+import { withAuth } from "@/lib/auth-utils";
 import { createSupabaseClient } from "@/lib/supabase";
 
 // POST /api/cards - Create a new card
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (auth, request: NextRequest) => {
   try {
-    // Check if user is authenticated
-    const session = await auth0.getSession();
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const supabase = await createSupabaseClient();
-
-    // Get user ID from Auth0 ID
-    const userId = session.user["user_id"];
-    if (!userId) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
     // Get request body
     const {
       columnId,
@@ -33,6 +19,8 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    const supabase = await createSupabaseClient();
 
     // Create a new card
     const { data: newCard, error: cardError } = await supabase
@@ -60,8 +48,10 @@ export async function POST(request: NextRequest) {
         updatedAt: newCard.updated_at,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error creating card:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
-}
+});

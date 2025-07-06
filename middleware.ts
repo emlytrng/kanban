@@ -8,7 +8,10 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/api/board/:path*",
+    "/api/boards/:path*",
+    "/api/cards/:path*",
+    "/api/columns/:path*",
+    "/api/ai/:path*",
     "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
   ],
 };
