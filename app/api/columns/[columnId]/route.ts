@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 import { withAuth } from "@/lib/auth-utils";
 import { createSupabaseClient } from "@/lib/supabase";
@@ -6,13 +6,12 @@ import type { DeleteColumnResponse, ApiError } from "@/types/api";
 
 // DELETE /api/columns/[columnId] - Delete a column
 export const DELETE = withAuth(
-  async (
-    _auth,
-    _request: NextRequest,
-    context?: { params: { columnId: string } }
-  ): Promise<NextResponse<DeleteColumnResponse | ApiError>> => {
+  async ({
+    context,
+  }): Promise<NextResponse<DeleteColumnResponse | ApiError>> => {
     try {
-      const columnId = context?.params?.columnId;
+      const params = await context?.params;
+      const columnId = params?.columnId;
       if (!columnId) {
         return NextResponse.json<ApiError>(
           { error: "Column ID is required" },

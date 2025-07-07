@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 import { withAuth } from "@/lib/auth-utils";
 import { createSupabaseClient } from "@/lib/supabase";
@@ -6,10 +6,7 @@ import type { CreateCardResponse, ApiError } from "@/types/api";
 
 // POST /api/cards - Create a new card
 export const POST = withAuth(
-  async (
-    auth,
-    request: NextRequest
-  ): Promise<NextResponse<CreateCardResponse | ApiError>> => {
+  async ({ request }): Promise<NextResponse<CreateCardResponse | ApiError>> => {
     try {
       // Get request body
       const {

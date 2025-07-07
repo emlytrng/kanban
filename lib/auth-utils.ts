@@ -6,11 +6,15 @@ export interface AuthContext {
   userId: string;
 }
 
-export type AuthenticatedHandler<TParams = Record<string, string>> = (
-  auth: AuthContext,
-  request: NextRequest,
-  context?: { params: TParams }
-) => Promise<NextResponse>;
+export type AuthenticatedHandler<TParams = Record<string, string>> = ({
+  auth,
+  request,
+  context,
+}: {
+  auth: AuthContext;
+  request: NextRequest;
+  context?: { params: Promise<TParams> };
+}) => Promise<NextResponse>;
 
 export async function authenticateUser(): Promise<
   { error: NextResponse; userId?: never } | { error?: never; userId: string }
@@ -46,7 +50,10 @@ export async function authenticateUser(): Promise<
 export function withAuth<TParams = Record<string, string>>(
   handler: AuthenticatedHandler<TParams>
 ) {
-  return async (request: NextRequest, context?: { params: TParams }) => {
+  return async (
+    request: NextRequest,
+    context?: { params: Promise<TParams> }
+  ) => {
     const authResult = await authenticateUser();
 
     if (authResult.error) {
@@ -57,6 +64,6 @@ export function withAuth<TParams = Record<string, string>>(
       userId: authResult.userId,
     };
 
-    return handler(auth, request, context);
+    return handler({ auth, request, context });
   };
 }

@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 import { withAuth } from "@/lib/auth-utils";
 import { createSupabaseClient } from "@/lib/supabase";
@@ -6,13 +6,13 @@ import type { UpdateCardTagsResponse, ApiError } from "@/types/api";
 
 // PUT /api/cards/[cardId]/tags - Update card tags (replace all tags)
 export const PUT = withAuth(
-  async (
-    auth,
-    request: NextRequest,
-    context?: { params: { cardId: string } }
-  ): Promise<NextResponse<UpdateCardTagsResponse | ApiError>> => {
+  async ({
+    request,
+    context,
+  }): Promise<NextResponse<UpdateCardTagsResponse | ApiError>> => {
     try {
-      const cardId = context?.params?.cardId;
+      const params = await context?.params;
+      const cardId = params?.cardId;
       if (!cardId) {
         return NextResponse.json<ApiError>(
           { error: "Card ID is required" },

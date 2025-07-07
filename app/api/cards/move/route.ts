@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 import { withAuth } from "@/lib/auth-utils";
 import { createSupabaseClient } from "@/lib/supabase";
@@ -6,10 +6,7 @@ import type { MoveCardResponse, ApiError } from "@/types/api";
 
 // POST /api/cards/move - Move a card between columns
 export const POST = withAuth(
-  async (
-    auth,
-    request: NextRequest
-  ): Promise<NextResponse<MoveCardResponse | ApiError>> => {
+  async ({ request }): Promise<NextResponse<MoveCardResponse | ApiError>> => {
     try {
       // Get request body
       const { cardId, sourceColumnId, destinationColumnId, destinationIndex } =

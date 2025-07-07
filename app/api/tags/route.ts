@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 import { withAuth } from "@/lib/auth-utils";
 import { createSupabaseClient } from "@/lib/supabase";
@@ -6,10 +6,7 @@ import type { GetTagsResponse, CreateTagResponse, ApiError } from "@/types/api";
 
 // GET /api/tags?boardId=xxx - Get all tags for a board
 export const GET = withAuth(
-  async (
-    auth,
-    request: NextRequest
-  ): Promise<NextResponse<GetTagsResponse | ApiError>> => {
+  async ({ request }): Promise<NextResponse<GetTagsResponse | ApiError>> => {
     try {
       const { searchParams } = new URL(request.url);
       const boardId = searchParams.get("boardId");
@@ -60,10 +57,7 @@ export const GET = withAuth(
 
 // POST /api/tags - Create a new tag
 export const POST = withAuth(
-  async (
-    auth,
-    request: NextRequest
-  ): Promise<NextResponse<CreateTagResponse | ApiError>> => {
+  async ({ request }): Promise<NextResponse<CreateTagResponse | ApiError>> => {
     try {
       const { boardId, name, color } = await request.json();
 

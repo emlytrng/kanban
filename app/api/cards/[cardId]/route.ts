@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 import { withAuth } from "@/lib/auth-utils";
 import { createSupabaseClient } from "@/lib/supabase";
@@ -10,13 +10,13 @@ import type {
 
 // PATCH /api/cards/[cardId] - Update a card
 export const PATCH = withAuth(
-  async (
-    auth,
-    request: NextRequest,
-    context?: { params: { cardId: string } }
-  ): Promise<NextResponse<UpdateCardResponse | ApiError>> => {
+  async ({
+    request,
+    context,
+  }): Promise<NextResponse<UpdateCardResponse | ApiError>> => {
     try {
-      const cardId = context?.params?.cardId;
+      const params = await context?.params;
+      const cardId = params?.cardId;
       if (!cardId) {
         return NextResponse.json<ApiError>(
           { error: "Card ID is required" },
@@ -76,13 +76,10 @@ export const PATCH = withAuth(
 
 // DELETE /api/cards/[cardId] - Delete a card
 export const DELETE = withAuth(
-  async (
-    auth,
-    request: NextRequest,
-    context?: { params: { cardId: string } }
-  ): Promise<NextResponse<DeleteCardResponse | ApiError>> => {
+  async ({ context }): Promise<NextResponse<DeleteCardResponse | ApiError>> => {
     try {
-      const cardId = context?.params?.cardId;
+      const params = await context?.params;
+      const cardId = params?.cardId;
       if (!cardId) {
         return NextResponse.json<ApiError>(
           { error: "Card ID is required" },

@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 import { withAuth } from "@/lib/auth-utils";
 import { createSupabaseClient } from "@/lib/supabase";
@@ -10,13 +10,13 @@ import type {
 
 // PATCH /api/tags/[tagId] - Update a tag
 export const PATCH = withAuth(
-  async (
-    auth,
-    request: NextRequest,
-    context?: { params: { tagId: string } }
-  ): Promise<NextResponse<UpdateTagResponse | ApiError>> => {
+  async ({
+    request,
+    context,
+  }): Promise<NextResponse<UpdateTagResponse | ApiError>> => {
     try {
-      const tagId = context?.params?.tagId;
+      const params = await context?.params;
+      const tagId = params?.tagId;
       if (!tagId) {
         return NextResponse.json<ApiError>(
           { error: "Tag ID is required" },
@@ -107,13 +107,10 @@ export const PATCH = withAuth(
 
 // DELETE /api/tags/[tagId] - Delete a tag
 export const DELETE = withAuth(
-  async (
-    auth,
-    request: NextRequest,
-    context?: { params: { tagId: string } }
-  ): Promise<NextResponse<DeleteTagResponse | ApiError>> => {
+  async ({ context }): Promise<NextResponse<DeleteTagResponse | ApiError>> => {
     try {
-      const tagId = context?.params?.tagId;
+      const params = await context?.params;
+      const tagId = params?.tagId;
       if (!tagId) {
         return NextResponse.json<ApiError>(
           { error: "Tag ID is required" },

@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 import { withAuth } from "@/lib/auth-utils";
 import { createSupabaseClient } from "@/lib/supabase";
@@ -10,10 +10,7 @@ import type {
 
 // GET /api/boards - Get all boards for the authenticated user
 export const GET = withAuth(
-  async (
-    auth,
-    _request: NextRequest
-  ): Promise<NextResponse<GetBoardsResponse | ApiError>> => {
+  async ({ auth }): Promise<NextResponse<GetBoardsResponse | ApiError>> => {
     try {
       const supabase = await createSupabaseClient();
 
@@ -71,10 +68,9 @@ export const GET = withAuth(
 
 // POST /api/boards - Create a new board
 export const POST = withAuth(
-  async (
-    _auth,
-    request: NextRequest
-  ): Promise<NextResponse<CreateBoardResponse | ApiError>> => {
+  async ({
+    request,
+  }): Promise<NextResponse<CreateBoardResponse | ApiError>> => {
     try {
       const { title } = await request.json();
       if (!title) {

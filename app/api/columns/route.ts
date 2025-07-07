@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 import { withAuth } from "@/lib/auth-utils";
 import { createSupabaseClient } from "@/lib/supabase";
@@ -10,10 +10,10 @@ import type {
 
 // POST /api/columns - Create a new column
 export const POST = withAuth(
-  async (
+  async ({
     auth,
-    request: NextRequest
-  ): Promise<NextResponse<CreateColumnResponse | ApiError>> => {
+    request,
+  }): Promise<NextResponse<CreateColumnResponse | ApiError>> => {
     try {
       // Get request body
       const { boardId, title, position } = await request.json();
@@ -82,10 +82,9 @@ export const POST = withAuth(
 
 // PUT /api/columns/reorder - Update column positions
 export const PUT = withAuth(
-  async (
-    auth,
-    request: NextRequest
-  ): Promise<NextResponse<ReorderColumnsResponse | ApiError>> => {
+  async ({
+    request,
+  }): Promise<NextResponse<ReorderColumnsResponse | ApiError>> => {
     try {
       const { columns } = await request.json();
       if (!columns || !Array.isArray(columns)) {
