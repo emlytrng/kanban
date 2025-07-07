@@ -1,36 +1,103 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Kanban Board
+
+A modern kanban board application built with Next.js, featuring AI-powered assistance, and a clean, responsive interface.
+
+## Features
+
+- **Drag & Drop Interface**: Intuitive card and column management
+- **AI Task Assistant**: Natural language task CRUD actions
+- **Tag System**: Organize cards with customizable colored tags
+- **Multi-Board Support**: Create and manage multiple project boards
+- **Authentication**: Secured user authentication via Auth0
+- **Real-time Updates**: Optimistic UI updates with server synchronization
+
+## Tech Stack
+
+- **Frontend**: Next.js 15, React, TypeScript, Tailwind CSS
+- **Backend**: Next.js API Routes, Supabase (PostgreSQL)
+- **Authentication**: Auth0
+- **State Management**: Zustand
+- **UI Components**: shadcn/ui, Radix UI
+- **Drag & Drop**: @hello-pangea/dnd
+- **AI Integration**: Vercel AI SDK with OpenAI
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Node.js 18+ and npm
+- Supabase account
+- Auth0 account
+- OpenAI API key (for AI features)
+
+### Installation
+
+1. **Clone the repository**
+
+   ```bash
+   git clone <repository-url>
+   cd kanban-board
+   npm install
+   ```
+
+2. **Set up environment variables**
+
+   ```bash
+   cp .env.example .env.local
+   ```
+
+3. **Set up the database**
+
+   - Run the Supabase migrations in the `supabase/migrations/` folder
+
+4. **Run the development server**
+
+   ```bash
+   npm run dev
+   ```
+
+   Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Project Structure
+
+```
+├── app/                    # Next.js app router pages
+├── components/            # React components
+│   ├── board/            # Board-specific components
+│   ├── chat/             # AI chat components
+│   └── ui/               # Reusable UI components
+├── lib/                  # Utilities and configurations
+│   └── stores/           # Zustand state management
+├── supabase/             # Database migrations and config
+└── types/                # TypeScript type definitions
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Key Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### AI Task Management
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Use natural language to manage tasks:
 
-## Learn More
+- "Create a bug fix task in To Do"
+- "Move the login task to Done"
+- "Show me all high priority tasks"
 
-To learn more about Next.js, take a look at the following resources:
+### Drag & Drop
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Reorder cards within columns
+- Move cards between columns
+- Reorder columns on the board
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Tag System
 
-## Deploy on Vercel
+- Create custom colored tags
+- Assign multiple tags to cards
+- Filter and organize by tags
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Contributing
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
