@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
-import { useActions } from "@/lib/store";
+import { useKanbanActions } from "@/lib/store";
 import type { Card } from "@/types";
 
 interface KanbanCardProps {
@@ -24,7 +24,7 @@ interface KanbanCardProps {
 }
 
 function KanbanCard({ card, index, columnId }: KanbanCardProps) {
-  const { updateCard, deleteCard } = useActions();
+  const { updateCard, deleteCard } = useKanbanActions();
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(card.title);
   const [editedDescription, setEditedDescription] = useState(

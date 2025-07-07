@@ -4,7 +4,13 @@ import { useEffect, useState } from "react";
 
 import { AlertCircle, Loader2 } from "lucide-react";
 
-import { useActions, useBoard, useIsLoading, useError } from "@/lib/store";
+import {
+  useBoard,
+  useIsKanbanLoading,
+  useError,
+  useKanbanActions,
+  useTagActions,
+} from "@/lib/store";
 
 import BoardContent from "./board/board-content";
 import BoardHeader from "./board/board-header";
@@ -17,9 +23,10 @@ type KanbanBoardProps = {
 
 export default function KanbanBoard({ userId, boardId }: KanbanBoardProps) {
   const board = useBoard();
-  const isLoading = useIsLoading();
+  const isLoading = useIsKanbanLoading();
   const error = useError();
-  const { fetchBoard, fetchUserBoards } = useActions();
+  const { fetchBoard, fetchUserBoards } = useKanbanActions();
+  const { fetchTags } = useTagActions();
 
   const [isChatOpen, setIsChatOpen] = useState(false);
 
@@ -30,7 +37,13 @@ export default function KanbanBoard({ userId, boardId }: KanbanBoardProps) {
     }
 
     fetchBoardData();
-  }, [fetchBoard, fetchUserBoards, userId, boardId]);
+  }, [fetchBoard, fetchUserBoards, boardId]);
+
+  useEffect(() => {
+    if (board) {
+      fetchTags(board.id);
+    }
+  }, [board, fetchTags]);
 
   if (isLoading) {
     return (
@@ -42,9 +55,10 @@ export default function KanbanBoard({ userId, boardId }: KanbanBoardProps) {
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center h-64">
+      <div className="flex flex-col items-center justify-center h-64 gap-4">
         <AlertCircle className="text-destructive" />
-        <h3 className="font-bold">Oops! Something went wrong.</h3>
+        <h2>Oops! Something went wrong.</h2>
+        <p className="text-sm text-muted-foreground">{error}</p>
       </div>
     );
   }

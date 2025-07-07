@@ -10,7 +10,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useTags, useActions } from "@/lib/store";
+import { useTags, useKanbanActions } from "@/lib/store";
 import type { Tag } from "@/types";
 
 interface CardTagSelectorProps {
@@ -27,7 +27,7 @@ export default function CardTagSelector({
   const [isOpen, setIsOpen] = useState(false);
 
   const availableTags = useTags();
-  const { updateCardTags } = useActions();
+  const { updateCardTags } = useKanbanActions();
   const selectedTagIds = selectedTags.map((tag) => tag.id);
 
   const toggleTag = async (tagId: string) => {

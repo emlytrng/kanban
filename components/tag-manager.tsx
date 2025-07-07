@@ -6,7 +6,12 @@ import { Plus, Edit2, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useTags, useIsTagsLoading, useError, useActions } from "@/lib/store";
+import {
+  useTags,
+  useIsTagsLoading,
+  useError,
+  useTagActions,
+} from "@/lib/store";
 
 interface TagManagerProps {
   boardId: string;
@@ -31,7 +36,7 @@ export default function TagManager({ boardId }: TagManagerProps) {
   const tags = useTags();
   const isLoading = useIsTagsLoading();
   const error = useError();
-  const { createTag, updateTag, deleteTag } = useActions();
+  const { createTag, updateTag, deleteTag } = useTagActions();
 
   const [isCreating, setIsCreating] = useState(false);
   const [editingTagId, setEditingTagId] = useState<string | null>(null);
@@ -256,6 +261,7 @@ export default function TagManager({ boardId }: TagManagerProps) {
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-accent"
+                      disabled={isLoading}
                     >
                       <Edit2 className="h-4 w-4" />
                     </Button>

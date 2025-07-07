@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Bot, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { useActions, useColumns } from "@/lib/store";
+import { useKanbanActions, useColumns, useChatActions } from "@/lib/store";
 import type { ChatMessage, Task } from "@/types/chat";
 
 import ChatInput from "./chat/chat-input";
@@ -31,8 +31,9 @@ export default function ChatTaskManager({
   ]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { addCard, updateCard, deleteCard, moveCard, chatWithAITaskManager } =
-    useActions();
+  const { addCard, updateCard, deleteCard, moveCard } = useKanbanActions();
+  const { chatWithAITaskManager } = useChatActions();
+
   const columns = useColumns();
 
   const getAllTasks = (): Task[] => {

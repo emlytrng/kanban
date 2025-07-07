@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { useActions } from "@/lib/store";
+import { useKanbanActions } from "@/lib/store";
 import type { Column } from "@/types";
 
 import KanbanCard from "./kanban-card";
@@ -24,13 +24,13 @@ interface KanbanColumnProps {
 }
 
 function KanbanColumn({ column, index }: KanbanColumnProps) {
-  const { addCard, deleteColumn } = useActions();
+  const { addCard, deleteColumn } = useKanbanActions();
   const [newCardTitle, setNewCardTitle] = useState("");
   const [isAddingCard, setIsAddingCard] = useState(false);
 
-  const handleAddCard = () => {
+  const handleAddCard = async () => {
     if (newCardTitle.trim()) {
-      addCard(column.id, newCardTitle.trim());
+      await addCard(column.id, newCardTitle.trim());
       setNewCardTitle("");
       setIsAddingCard(false);
     }

@@ -16,12 +16,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useActions } from "@/lib/store";
+import { useKanbanActions } from "@/lib/store";
 
 export default function AddBoardForm() {
   const [title, setTitle] = useState("New Board");
   const [isCreating, setIsCreating] = useState(false);
-  const { addBoard } = useActions();
+  const { addBoard } = useKanbanActions();
   const router = useRouter();
 
   const handleAddBoard = async () => {

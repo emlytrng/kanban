@@ -2,13 +2,13 @@
 
 import { DragDropContext, Droppable, type DropResult } from "@hello-pangea/dnd";
 
-import { useColumns, useActions } from "@/lib/store";
+import { useColumns, useKanbanActions } from "@/lib/store";
 
 import KanbanColumn from "../kanban-column";
 
 export default function BoardContent() {
   const columns = useColumns();
-  const { moveCard, moveColumn } = useActions();
+  const { moveCard, moveColumn } = useKanbanActions();
 
   const handleDragEnd = (result: DropResult) => {
     const { destination, source, draggableId, type } = result;

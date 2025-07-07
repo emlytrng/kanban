@@ -24,7 +24,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { useActions, useBoard, useBoards } from "@/lib/store";
+import {
+  useBoard,
+  useBoards,
+  useKanbanActions,
+  useTagActions,
+} from "@/lib/store";
 
 interface BoardHeaderProps {
   onOpenChatAction: () => void;
@@ -41,7 +46,8 @@ export default function BoardHeader({ onOpenChatAction }: BoardHeaderProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isTagManagerOpen, setIsTagManagerOpen] = useState(false);
 
-  const { addColumn, addBoard, deleteBoard, fetchTags } = useActions();
+  const { addBoard, deleteBoard, addColumn } = useKanbanActions();
+  const { fetchTags } = useTagActions();
   const currentBoard = useBoard();
   const boards = useBoards();
   const router = useRouter();
@@ -52,9 +58,9 @@ export default function BoardHeader({ onOpenChatAction }: BoardHeaderProps) {
     }
   }, [currentBoard, fetchTags]);
 
-  const handleAddColumn = () => {
+  const handleAddColumn = async () => {
     if (newColumnTitle.trim()) {
-      addColumn(newColumnTitle.trim());
+      await addColumn(newColumnTitle.trim());
       setNewColumnTitle("");
       setIsAddingColumn(false);
     }
