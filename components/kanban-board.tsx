@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { Loader2 } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 
 import { useActions, useBoard, useIsLoading, useError } from "@/lib/store";
 
@@ -42,9 +42,9 @@ export default function KanbanBoard({ userId, boardId }: KanbanBoardProps) {
 
   if (error) {
     return (
-      <div className="p-4 bg-destructive/10 border border-destructive/30 rounded-md text-destructive mb-6">
-        <h3 className="font-bold">Error loading board</h3>
-        <p>{error}</p>
+      <div className="flex flex-col items-center justify-center h-64">
+        <AlertCircle className="text-destructive" />
+        <h3 className="font-bold">Oops! Something went wrong.</h3>
       </div>
     );
   }

@@ -114,3 +114,47 @@ export const GET = withAuth(
     }
   }
 );
+
+// DELETE /api/boards/[boardId] - Delete a specific board
+export const DELETE = withAuth(
+  async (
+    _auth,
+    _request: NextRequest,
+    context?: { params: { boardId: string } }
+  ): Promise<NextResponse<{ success: true } | ApiError>> => {
+    try {
+      const boardId = context?.params?.boardId;
+      if (!boardId) {
+        return NextResponse.json<ApiError>(
+          { error: "Board ID is required" },
+          { status: 400 }
+        );
+      }
+
+      const supabase = await createSupabaseClient();
+
+      // Delete the board (this will cascade delete columns and cards due to foreign key constraints)
+      const { error: deleteError } = await supabase
+        .from("boards")
+        .delete()
+        .eq("id", boardId);
+
+      if (deleteError) {
+        return NextResponse.json<ApiError>(
+          { error: deleteError.message },
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json({ success: true });
+    } catch (error: unknown) {
+      console.error("Error deleting board:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
+      return NextResponse.json<ApiError>(
+        { error: errorMessage },
+        { status: 500 }
+      );
+    }
+  }
+);

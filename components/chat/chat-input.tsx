@@ -43,11 +43,6 @@ export default function ChatInput({ onSubmit, isLoading }: ChatInputProps) {
           <Send className="h-4 w-4" />
         </Button>
       </form>
-
-      <div className="mt-2 text-xs text-muted-foreground">
-        Try: Show me all high-priority tasks • Move the login task to Done •
-        Delete completed tasks
-      </div>
     </div>
   );
 }

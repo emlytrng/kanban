@@ -22,6 +22,10 @@ export type CreateBoardResponse = {
   boardId: string;
 };
 
+export type DeleteBoardResponse = {
+  success: true;
+};
+
 export type GetBoardResponse = {
   board: Board;
   columns: Column[];

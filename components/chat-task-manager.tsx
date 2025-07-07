@@ -2,11 +2,10 @@
 
 import { useState } from "react";
 
-import { Bot } from "lucide-react";
+import { Bot, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useActions, useColumns } from "@/lib/store";
-import { TaskOperationResponse } from "@/schemas/task-operation-response";
 import type { ChatMessage, Task } from "@/types/chat";
 
 import ChatInput from "./chat/chat-input";
@@ -26,7 +25,7 @@ export default function ChatTaskManager({
       id: "welcome",
       type: "assistant",
       content:
-        'Hi! I can help you manage your tasks using natural language. Here are some things you can try:\n\n**Create Tasks:**\n• "Create a task to fix the login bug"\n• "Add a high-priority feature for dark mode"\n\n**Find Tasks:**\n• "Show me all high-priority tasks"\n• "Find tasks assigned to John"\n• "What tasks are overdue?"\n\n**Update Tasks:**\n• "Move the login task to Done"\n• "Change the API task priority to urgent"\n• "Assign the bug fix to Sarah"\n\n**Delete Tasks:**\n• "Delete the duplicate authentication task"\n• "Remove completed tasks from last week"',
+        'Hi! I can help you manage your tasks using natural language. Here are some things you can try:\n\n**Create Tasks**\n• "Create a task to fix the login bug under To Do"\n\n**Find Tasks**\n• "Show me all tasks under In Progress"\n\n**Update Tasks**\n• "Move the login task to Done"\n\n**Delete Tasks**\n• "Delete the duplicate authentication task"',
       timestamp: new Date(),
     },
   ]);
@@ -70,12 +69,7 @@ export default function ChatTaskManager({
     setIsLoading(true);
 
     try {
-      // Use the store action instead of direct fetch
-      const data = (await chatWithAITaskManager(
-        input,
-        columns,
-        getAllTasks
-      )) as TaskOperationResponse;
+      const data = await chatWithAITaskManager(input, columns, getAllTasks);
 
       let operationResult;
 
@@ -221,31 +215,35 @@ export default function ChatTaskManager({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="w-full max-w-3xl h-[80vh] max-h-[700px] bg-background border border-border rounded-lg shadow-lg flex flex-col overflow-hidden">
-        <div className="flex items-center justify-between p-6 border-b border-border bg-card">
-          <div className="flex items-center gap-2">
-            <Bot className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-semibold text-card-foreground">
-              AI Task Manager
-            </h2>
+    <>
+      <div className="fixed top-0 right-0 h-full bg-background border-l border-border shadow-2xl z-40 transition-all duration-300 ease-in-out w-full sm:w-full md:w-96">
+        <div className="h-full flex flex-col">
+          <div className="flex items-center justify-between p-4 border-b border-border bg-card/50">
+            <div className="flex items-center gap-2">
+              <Bot className="h-4 w-4 text-primary" />
+              <h2 className="text-sm font-semibold text-card-foreground">
+                AI Task Manager
+              </h2>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onCloseAction}
+              className="w-6 h-6 p-0 text-muted-foreground hover:text-foreground hover:bg-accent"
+            >
+              <X className="h-3 w-3" />
+            </Button>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onCloseAction}
-            className="text-muted-foreground hover:text-card-foreground hover:bg-accent"
-          >
-            ×
-          </Button>
+          {/* Messages Area */}
+          <div className="flex-1 overflow-hidden">
+            <ChatMessages messages={messages} isLoading={isLoading} />
+          </div>
+          {/* Input Area */}
+          <div className="border-t border-border">
+            <ChatInput onSubmit={handleSubmit} isLoading={isLoading} />
+          </div>
         </div>
-
-        {/* Messages Area */}
-        <ChatMessages messages={messages} isLoading={isLoading} />
-
-        {/* Input Area */}
-        <ChatInput onSubmit={handleSubmit} isLoading={isLoading} />
       </div>
-    </div>
+    </>
   );
 }

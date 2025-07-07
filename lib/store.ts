@@ -28,6 +28,7 @@ interface KanbanState {
     fetchUserBoards: () => Promise<KanbanState["boards"]>;
     fetchBoard: (boardId?: string) => Promise<void>;
     addBoard: (title: string) => Promise<string | null>;
+    deleteBoard: (boardId: string) => Promise<boolean>;
     addColumn: (title: string) => Promise<void>;
     deleteColumn: (columnId: string) => Promise<void>;
     moveColumn: (
@@ -198,6 +199,56 @@ export const useKanbanStore = create(
           }));
 
           return null;
+        }
+      },
+
+      deleteBoard: async (boardId: string) => {
+        const boardToDelete = get().boards.find(
+          (board) => board.id === boardId
+        );
+
+        if (!boardToDelete) {
+          set({ error: "Board not found" });
+          return false;
+        }
+
+        // Optimistic update
+        set((state) => ({
+          boards: state.boards.filter((board) => board.id !== boardId),
+          error: null,
+        }));
+
+        const currentBoard = get().board;
+        if (currentBoard?.id === boardId) {
+          set({ board: null, columns: [] });
+        }
+
+        try {
+          const response = await fetch(`/api/boards/${boardId}`, {
+            method: "DELETE",
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Failed to delete board");
+          }
+
+          return true;
+        } catch (error) {
+          const errorMessage = getErrorMessage(error);
+          console.error("Error deleting board:", error);
+
+          // Rollback optimistic update
+          set((state) => ({
+            boards: [...state.boards, boardToDelete].sort(
+              (a, b) =>
+                new Date(b.createdAt).getTime() -
+                new Date(a.createdAt).getTime()
+            ),
+            error: "Failed to delete board: " + errorMessage,
+          }));
+
+          return false;
         }
       },
 
