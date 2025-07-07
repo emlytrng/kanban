@@ -235,11 +235,11 @@ export default function ChatTaskManager({
               <X className="h-3 w-3" />
             </Button>
           </div>
-          {/* Messages Area */}
+
           <div className="flex-1 overflow-hidden">
             <ChatMessages messages={messages} isLoading={isLoading} />
           </div>
-          {/* Input Area */}
+
           <div className="border-t border-border">
             <ChatInput onSubmit={handleSubmit} isLoading={isLoading} />
           </div>

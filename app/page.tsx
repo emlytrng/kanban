@@ -22,8 +22,8 @@ export default async function Home() {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col items-center justify-center mt-20 text-center">
             <p className="text-lg text-muted-foreground max-w-2xl mb-8">
-              Organize your tasks, collaborate with your team, and boost your
-              productivity with our kanban board.
+              Organize your tasks and boost your productivity with our kanban
+              board.
             </p>
             <div className="flex gap-4">
               <Button

@@ -129,7 +129,6 @@ export default function TagManager({ boardId }: TagManagerProps) {
         </div>
       )}
 
-      {/* Create new tag form */}
       {isCreating && (
         <div className="p-4 border border-border rounded-lg bg-card space-y-3">
           <div className="space-y-2">
@@ -183,7 +182,6 @@ export default function TagManager({ boardId }: TagManagerProps) {
         </div>
       )}
 
-      {/* Tags list */}
       <div className="space-y-2">
         {tags.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">

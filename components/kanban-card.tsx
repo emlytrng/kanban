@@ -3,7 +3,7 @@
 import { useState, memo } from "react";
 
 import { Draggable } from "@hello-pangea/dnd";
-import { MoreHorizontal, Pencil, Trash2, Calendar } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 
 import CardTagSelector from "@/components/card-tag-selector";
 import { Button } from "@/components/ui/button";
@@ -48,19 +48,6 @@ function KanbanCard({ card, index, columnId }: KanbanCardProps) {
   const handleDeleteCard = () => {
     deleteCard(columnId, card.id);
   };
-
-  // Generate random due date for demo purposes
-  const getDueDate = () => {
-    const today = new Date();
-    const randomDays = Math.floor(Math.random() * 30) - 10; // -10 to +20 days from today
-    const dueDate = new Date(today);
-    dueDate.setDate(today.getDate() + randomDays);
-    return dueDate;
-  };
-
-  const dueDate = getDueDate();
-  const formattedDate = `May ${Math.floor(Math.random() * 30) + 1}`;
-  const isPastDue = dueDate < new Date();
 
   return (
     <Draggable draggableId={card.id} index={index}>
@@ -182,15 +169,6 @@ function KanbanCard({ card, index, columnId }: KanbanCardProps) {
                   ))}
                 </div>
               )}
-
-              <div className="flex items-center text-xs text-muted-foreground">
-                <div className="flex items-center">
-                  <Calendar className="h-3 w-3 mr-1" />
-                  <span className={isPastDue ? "text-destructive" : ""}>
-                    {formattedDate}
-                  </span>
-                </div>
-              </div>
             </div>
           )}
         </div>
