@@ -25,8 +25,8 @@ export default function KanbanBoard({ userId, boardId }: KanbanBoardProps) {
 
   useEffect(() => {
     async function fetchBoardData() {
-      await fetchUserBoards(userId);
-      await fetchBoard(userId, boardId);
+      await fetchUserBoards();
+      await fetchBoard(boardId);
     }
 
     fetchBoardData();
@@ -55,7 +55,10 @@ export default function KanbanBoard({ userId, boardId }: KanbanBoardProps) {
 
   return (
     <div className="h-screen bg-background text-foreground">
-      <BoardHeader onOpenChat={() => setIsChatOpen(true)} userId={userId} />
+      <BoardHeader
+        onOpenChatAction={() => setIsChatOpen(true)}
+        userId={userId}
+      />
       <BoardContent />
       <ChatTaskManager
         isOpen={isChatOpen}

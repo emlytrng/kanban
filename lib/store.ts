@@ -24,19 +24,23 @@ interface KanbanState {
 
   actions: {
     setDragging: (isDragging: boolean) => void;
-    fetchUserBoards: (userId: string) => Promise<KanbanState["boards"]>;
-    fetchBoard: (userId: string, boardId?: string) => Promise<void>;
-    addBoard: (title: string, userId: string) => Promise<string | null>;
-    addColumn: (title: string) => void;
-    deleteColumn: (columnId: string) => void;
-    moveColumn: (sourceIndex: number, destinationIndex: number) => void;
-    addCard: (columnId: string, title: string) => void;
+    clearError: () => void;
+    fetchUserBoards: () => Promise<KanbanState["boards"]>;
+    fetchBoard: (boardId?: string) => Promise<void>;
+    addBoard: (title: string) => Promise<string | null>;
+    addColumn: (title: string) => Promise<void>;
+    deleteColumn: (columnId: string) => Promise<void>;
+    moveColumn: (
+      sourceIndex: number,
+      destinationIndex: number
+    ) => Promise<void>;
+    addCard: (columnId: string, title: string) => Promise<void>;
     updateCard: (
       cardId: string,
       updates: Partial<Card>,
       columnId?: string
-    ) => void;
-    deleteCard: (columnId: string, cardId: string) => void;
+    ) => Promise<void>;
+    deleteCard: (columnId: string, cardId: string) => Promise<void>;
     moveCard: (
       cardId: string,
       sourceColumnId: string,
@@ -44,7 +48,7 @@ interface KanbanState {
       sourceIndex: number,
       destinationIndex: number,
       skipOptimistic?: boolean
-    ) => void;
+    ) => Promise<void>;
     findTaskById: (taskId: string) => { task: Card; columnId: string } | null;
     chatWithAITaskManager: (
       input: string,
@@ -53,6 +57,16 @@ interface KanbanState {
     ) => Promise<TaskOperationResponse>;
   };
 }
+
+const getErrorMessage = (error: unknown): string => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (typeof error === "string") {
+    return error;
+  }
+  return "An unknown error occurred";
+};
 
 export const useKanbanStore = create(
   subscribeWithSelector<KanbanState>((set, get) => ({
@@ -66,6 +80,10 @@ export const useKanbanStore = create(
     actions: {
       setDragging: (isDragging: boolean) => {
         set({ isDragging });
+      },
+
+      clearError: () => {
+        set({ error: null });
       },
 
       fetchUserBoards: async () => {
@@ -86,17 +104,18 @@ export const useKanbanStore = create(
           });
 
           return data.boards;
-        } catch (error: any) {
+        } catch (error) {
+          const errorMessage = getErrorMessage(error);
           console.error("Error fetching user boards:", error);
           set({
-            error: "Failed to fetch boards: " + error.message,
+            error: "Failed to fetch boards: " + errorMessage,
             isLoading: false,
           });
           return [];
         }
       },
 
-      fetchBoard: async (userId, boardId) => {
+      fetchBoard: async (boardId?: string) => {
         set({ isLoading: true, error: null });
         try {
           let url = "/api/boards";
@@ -119,23 +138,38 @@ export const useKanbanStore = create(
             columns: data.columns,
             isLoading: false,
           });
-        } catch (error: any) {
+        } catch (error) {
+          const errorMessage = getErrorMessage(error);
           console.error("Error fetching board:", error);
           set({
-            error: "Failed to fetch board data: " + error.message,
+            error: "Failed to fetch board data: " + errorMessage,
             isLoading: false,
           });
         }
       },
 
-      addBoard: async (title: string, userId: string) => {
+      addBoard: async (title: string) => {
+        const tempId = uuidv4();
+        const newBoard: Board = {
+          id: tempId,
+          title: title.trim(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+
+        // Optimistic update
+        set((state) => ({
+          boards: [newBoard, ...state.boards],
+          error: null,
+        }));
+
         try {
           const response = await fetch("/api/boards", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ title }),
+            body: JSON.stringify({ title: title.trim() }),
           });
 
           if (!response.ok) {
@@ -145,27 +179,42 @@ export const useKanbanStore = create(
 
           const data: CreateBoardResponse = await response.json();
 
-          // Update the boards list
-          await get().actions.fetchUserBoards(userId);
+          // Update with actual board ID from server
+          set((state) => ({
+            boards: state.boards.map((board) =>
+              board.id === tempId ? { ...board, id: data.boardId } : board
+            ),
+          }));
 
-          // Return the new board ID
           return data.boardId;
-        } catch (error: any) {
+        } catch (error) {
+          const errorMessage = getErrorMessage(error);
           console.error("Error creating board:", error);
+
+          // Rollback optimistic update
+          set((state) => ({
+            boards: state.boards.filter((board) => board.id !== tempId),
+            error: "Failed to create board: " + errorMessage,
+          }));
+
           return null;
         }
       },
 
       addColumn: async (title: string) => {
         const board = get().board;
-        if (!board) return;
+        if (!board) {
+          set({ error: "No board selected" });
+          return;
+        }
 
         const columns = get().columns;
         const position = columns.length;
+        const tempId = uuidv4();
 
         const newColumn: Column = {
-          id: uuidv4(),
-          title,
+          id: tempId,
+          title: title.trim(),
           cards: [],
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
@@ -174,6 +223,7 @@ export const useKanbanStore = create(
         // Optimistic update
         set((state) => ({
           columns: [...state.columns, newColumn],
+          error: null,
         }));
 
         try {
@@ -184,7 +234,7 @@ export const useKanbanStore = create(
             },
             body: JSON.stringify({
               boardId: board.id,
-              title,
+              title: title.trim(),
               position,
             }),
           });
@@ -199,24 +249,33 @@ export const useKanbanStore = create(
           // Update with the actual column ID from the server
           set((state) => ({
             columns: state.columns.map((col) =>
-              col.id === newColumn.id ? { ...col, id: data.column.id } : col
+              col.id === tempId ? { ...col, id: data.column.id } : col
             ),
           }));
         } catch (error) {
+          const errorMessage = getErrorMessage(error);
+          console.error("Error adding column:", error);
+
           // Rollback on error
           set((state) => ({
-            columns: state.columns.filter((col) => col.id !== newColumn.id),
+            columns: state.columns.filter((col) => col.id !== tempId),
+            error: "Failed to add column: " + errorMessage,
           }));
-          console.error("Error adding column:", error);
         }
       },
 
       deleteColumn: async (columnId: string) => {
         const columnToDelete = get().columns.find((col) => col.id === columnId);
 
+        if (!columnToDelete) {
+          set({ error: "Column not found" });
+          return;
+        }
+
         // Optimistic update
         set((state) => ({
           columns: state.columns.filter((col) => col.id !== columnId),
+          error: null,
         }));
 
         try {
@@ -229,25 +288,49 @@ export const useKanbanStore = create(
             throw new Error(errorData.error || "Failed to delete column");
           }
         } catch (error) {
-          // Rollback on error
-          if (columnToDelete) {
-            set((state) => ({
-              columns: [...state.columns, columnToDelete],
-            }));
-          }
+          const errorMessage = getErrorMessage(error);
           console.error("Error deleting column:", error);
+
+          // Rollback on error - restore column at its original position
+          set((state) => {
+            const newColumns = [...state.columns];
+            const originalColumns = get().columns;
+            const originalIndex = originalColumns.findIndex(
+              (col) => col.id === columnId
+            );
+            const insertIndex =
+              originalIndex >= 0 ? originalIndex : newColumns.length;
+            newColumns.splice(insertIndex, 0, columnToDelete);
+
+            return {
+              columns: newColumns,
+              error: "Failed to delete column: " + errorMessage,
+            };
+          });
         }
       },
 
       moveColumn: async (sourceIndex: number, destinationIndex: number) => {
         const { columns } = get();
+
+        if (
+          sourceIndex < 0 ||
+          sourceIndex >= columns.length ||
+          destinationIndex < 0 ||
+          destinationIndex >= columns.length
+        ) {
+          set({ error: "Invalid column positions" });
+          return;
+        }
+
         const originalColumns = [...columns]; // Store original state
 
         const newColumns = [...columns];
         const [movedColumn] = newColumns.splice(sourceIndex, 1);
         newColumns.splice(destinationIndex, 0, movedColumn);
 
-        set({ columns: newColumns });
+        // Optimistic update
+        set({ columns: newColumns, error: null });
 
         try {
           const response = await fetch("/api/columns", {
@@ -261,21 +344,30 @@ export const useKanbanStore = create(
             throw new Error(errorData.error || "Failed to reorder columns");
           }
         } catch (error) {
+          const errorMessage = getErrorMessage(error);
           console.error("Error reordering columns:", error);
+
           // Rollback to original state
-          set({ columns: originalColumns, error: "Failed to reorder columns" });
+          set({
+            columns: originalColumns,
+            error: "Failed to reorder columns: " + errorMessage,
+          });
         }
       },
 
       addCard: async (columnId: string, title: string) => {
         const column = get().columns.find((col) => col.id === columnId);
-        if (!column) return;
+        if (!column) {
+          set({ error: "Column not found" });
+          return;
+        }
 
         const position = column.cards.length;
+        const tempId = uuidv4();
 
         const newCard: Card = {
-          id: uuidv4(),
-          title,
+          id: tempId,
+          title: title.trim(),
           description: "",
           assignee: "You",
           createdAt: new Date().toISOString(),
@@ -293,6 +385,7 @@ export const useKanbanStore = create(
             }
             return col;
           }),
+          error: null,
         }));
 
         try {
@@ -303,7 +396,7 @@ export const useKanbanStore = create(
             },
             body: JSON.stringify({
               columnId,
-              title,
+              title: title.trim(),
               position,
             }),
           });
@@ -322,7 +415,7 @@ export const useKanbanStore = create(
                 return {
                   ...col,
                   cards: col.cards.map((c) =>
-                    c.id === newCard.id ? { ...c, id: data.card.id } : c
+                    c.id === tempId ? { ...c, id: data.card.id } : c
                   ),
                 };
               }
@@ -330,19 +423,22 @@ export const useKanbanStore = create(
             }),
           }));
         } catch (error) {
+          const errorMessage = getErrorMessage(error);
+          console.error("Error adding card:", error);
+
           // Rollback on error
           set((state) => ({
             columns: state.columns.map((col) => {
               if (col.id === columnId) {
                 return {
                   ...col,
-                  cards: col.cards.filter((c) => c.id !== newCard.id),
+                  cards: col.cards.filter((c) => c.id !== tempId),
                 };
               }
               return col;
             }),
+            error: "Failed to add card: " + errorMessage,
           }));
-          console.error("Error adding card:", error);
         }
       },
 
@@ -351,14 +447,35 @@ export const useKanbanStore = create(
         updates: Partial<Card>,
         columnId?: string
       ) => {
-        const originalCard = get()
-          .columns.find((col) => col.id === columnId)
-          ?.cards.find((card) => card.id === cardId);
+        // Find the column and card
+        let targetColumnId = columnId;
+        let originalCard: Card | undefined;
+
+        if (!targetColumnId) {
+          // If columnId is not provided, find it by searching all columns
+          for (const col of get().columns) {
+            const card = col.cards.find((c) => c.id === cardId);
+            if (card) {
+              targetColumnId = col.id;
+              originalCard = card;
+              break;
+            }
+          }
+        } else {
+          // If columnId is provided, find the card in that column
+          const column = get().columns.find((col) => col.id === targetColumnId);
+          originalCard = column?.cards.find((card) => card.id === cardId);
+        }
+
+        if (!targetColumnId || !originalCard) {
+          set({ error: "Card or column not found" });
+          return;
+        }
 
         // Optimistic update
         set((state) => ({
           columns: state.columns.map((col) => {
-            if (col.id === columnId) {
+            if (col.id === targetColumnId) {
               return {
                 ...col,
                 cards: col.cards.map((card) => {
@@ -375,6 +492,7 @@ export const useKanbanStore = create(
             }
             return col;
           }),
+          error: null,
         }));
 
         try {
@@ -395,42 +513,66 @@ export const useKanbanStore = create(
           }
 
           const data: UpdateCardResponse = await response.json();
+
+          // Update with server response timestamp
+          set((state) => ({
+            columns: state.columns.map((col) => {
+              if (col.id === targetColumnId) {
+                return {
+                  ...col,
+                  cards: col.cards.map((card) => {
+                    if (card.id === cardId) {
+                      return {
+                        ...card,
+                        updatedAt: data.card.updatedAt,
+                      };
+                    }
+                    return card;
+                  }),
+                };
+              }
+              return col;
+            }),
+          }));
         } catch (error) {
-          // Rollback on error
-          if (originalCard) {
-            set((state) => ({
-              columns: state.columns.map((col) => {
-                if (col.id === columnId) {
-                  return {
-                    ...col,
-                    cards: col.cards.map((card) => {
-                      if (card.id === cardId) {
-                        return originalCard;
-                      }
-                      return card;
-                    }),
-                  };
-                }
-                return col;
-              }),
-            }));
-          }
+          const errorMessage = getErrorMessage(error);
           console.error("Error updating card:", error);
+
+          // Rollback on error
+          set((state) => ({
+            columns: state.columns.map((col) => {
+              if (col.id === targetColumnId) {
+                return {
+                  ...col,
+                  cards: col.cards.map((card) => {
+                    if (card.id === cardId) {
+                      return originalCard!;
+                    }
+                    return card;
+                  }),
+                };
+              }
+              return col;
+            }),
+            error: "Failed to update card: " + errorMessage,
+          }));
         }
       },
 
       deleteCard: async (columnId: string, cardId: string) => {
-        const columnIndex = get().columns.findIndex(
-          (col) => col.id === columnId
-        );
-        if (columnIndex === -1) return;
+        const column = get().columns.find((col) => col.id === columnId);
+        if (!column) {
+          set({ error: "Column not found" });
+          return;
+        }
 
-        const cardIndex = get().columns[columnIndex].cards.findIndex(
-          (card) => card.id === cardId
-        );
-        if (cardIndex === -1) return;
+        const cardIndex = column.cards.findIndex((card) => card.id === cardId);
+        if (cardIndex === -1) {
+          set({ error: "Card not found" });
+          return;
+        }
 
-        const deletedCard = get().columns[columnIndex].cards[cardIndex];
+        const deletedCard = column.cards[cardIndex];
 
         // Optimistic update
         set((state) => ({
@@ -443,6 +585,7 @@ export const useKanbanStore = create(
             }
             return col;
           }),
+          error: null,
         }));
 
         try {
@@ -455,7 +598,10 @@ export const useKanbanStore = create(
             throw new Error(errorData.error || "Failed to delete card");
           }
         } catch (error) {
-          // Rollback on error
+          const errorMessage = getErrorMessage(error);
+          console.error("Error deleting card:", error);
+
+          // Rollback on error - restore card at its original position
           set((state) => ({
             columns: state.columns.map((col) => {
               if (col.id === columnId) {
@@ -468,8 +614,8 @@ export const useKanbanStore = create(
               }
               return col;
             }),
+            error: "Failed to delete card: " + errorMessage,
           }));
-          console.error("Error deleting card:", error);
         }
       },
 
@@ -525,13 +671,19 @@ export const useKanbanStore = create(
         const sourceColumn = state.columns.find(
           (col) => col.id === sourceColumnId
         );
-        if (!sourceColumn) return;
+        if (!sourceColumn) {
+          set({ error: "Source column not found" });
+          return;
+        }
 
         const card = sourceColumn.cards.find((c) => c.id === cardId);
-        if (!card) return;
+        if (!card) {
+          set({ error: "Card not found" });
+          return;
+        }
 
         // Store original state for rollback
-        const originalColumns = state.columns;
+        const originalColumns = [...state.columns];
 
         // Apply optimistic update immediately
         set((state) => {
@@ -566,7 +718,7 @@ export const useKanbanStore = create(
             cards: updatedDestCards,
           };
 
-          return { columns: newColumns };
+          return { columns: newColumns, error: null };
         });
 
         try {
@@ -588,9 +740,14 @@ export const useKanbanStore = create(
             throw new Error(errorData.error || "Failed to move card");
           }
         } catch (error) {
+          const errorMessage = getErrorMessage(error);
           console.error("Error moving card:", error);
+
           // Rollback to original state on error
-          set({ columns: originalColumns });
+          set({
+            columns: originalColumns,
+            error: "Failed to move card: " + errorMessage,
+          });
         }
       },
 
@@ -610,23 +767,33 @@ export const useKanbanStore = create(
         columns: Column[],
         getAllTasks: () => Card[]
       ) => {
-        const allTasks = getAllTasks();
-        const response = await fetch("/api/ai/chat-task-management", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            message: input,
-            columns: columns.map((col) => ({ id: col.id, title: col.title })),
-            tasks: allTasks,
-          }),
-        });
-        if (!response.ok) {
-          throw new Error("Failed to process message");
+        try {
+          const allTasks = getAllTasks();
+          const response = await fetch("/api/ai/chat-task-management", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              message: input,
+              columns: columns.map((col) => ({ id: col.id, title: col.title })),
+              tasks: allTasks,
+            }),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Failed to process message");
+          }
+
+          const data: ChatTaskManagementResponse = await response.json();
+          return data;
+        } catch (error) {
+          const errorMessage = getErrorMessage(error);
+          console.error("Error in AI task manager:", error);
+          set({ error: "Failed to process AI request: " + errorMessage });
+          throw error;
         }
-        const data: ChatTaskManagementResponse = await response.json();
-        return data;
       },
     },
   }))

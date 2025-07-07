@@ -82,7 +82,7 @@ export default async function Home() {
 
       {/* Main Content */}
       <div className="p-6">
-        <AddBoardForm userId={userId} />
+        <AddBoardForm />
       </div>
     </main>
   );

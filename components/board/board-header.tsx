@@ -18,11 +18,11 @@ import { Input } from "@/components/ui/input";
 import { useActions, useBoard, useBoards } from "@/lib/store";
 
 interface BoardHeaderProps {
-  onOpenChat: () => void;
+  onOpenChatAction: () => void;
   userId: string;
 }
 
-export default function BoardHeader({ onOpenChat, userId }: BoardHeaderProps) {
+export default function BoardHeader({ onOpenChatAction }: BoardHeaderProps) {
   const [newColumnTitle, setNewColumnTitle] = useState("");
   const [isAddingColumn, setIsAddingColumn] = useState(false);
   const [newBoardTitle, setNewBoardTitle] = useState("");
@@ -43,7 +43,7 @@ export default function BoardHeader({ onOpenChat, userId }: BoardHeaderProps) {
 
   const handleAddBoard = async () => {
     if (newBoardTitle.trim()) {
-      const boardId = await addBoard(newBoardTitle.trim(), userId);
+      const boardId = await addBoard(newBoardTitle.trim());
       if (boardId) {
         router.push(`/board/${boardId}`);
       }
@@ -103,7 +103,7 @@ export default function BoardHeader({ onOpenChat, userId }: BoardHeaderProps) {
           Add Column
         </Button>
         <Button
-          onClick={onOpenChat}
+          onClick={onOpenChatAction}
           className="bg-primary text-primary-foreground hover:bg-primary/90 border-0"
         >
           <Bot className="h-4 w-4 mr-2" />

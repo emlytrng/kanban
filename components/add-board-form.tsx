@@ -18,12 +18,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { useActions } from "@/lib/store";
 
-type AddBoardFormProps = {
-  userId: string;
-};
-
-export default function AddBoardForm({ userId }: AddBoardFormProps) {
-  const [title, setTitle] = useState("kanban");
+export default function AddBoardForm() {
+  const [title, setTitle] = useState("New Board");
   const [isCreating, setIsCreating] = useState(false);
   const { addBoard } = useActions();
   const router = useRouter();
@@ -32,7 +28,7 @@ export default function AddBoardForm({ userId }: AddBoardFormProps) {
     if (!title.trim()) return;
 
     setIsCreating(true);
-    const boardId = await addBoard(title.trim(), userId);
+    const boardId = await addBoard(title.trim());
     setIsCreating(false);
 
     if (boardId) {
