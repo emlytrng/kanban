@@ -4,7 +4,7 @@ import { Plus, Edit, Trash2, Search, CheckCircle } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { ChatMessage } from "@/types/chat";
+import type { ChatMessage } from "@/types/chat";
 
 export default function OperationResult({
   operation,
@@ -63,7 +63,7 @@ export default function OperationResult({
   };
 
   return (
-    <div className="mt-3 p-3 bg-card border border-border rounded-lg">
+    <div className="mt-3 p-3 bg-muted/30 border border-border rounded-lg">
       <div className="flex items-center gap-2 mb-2">
         {getIcon()}
         <span className={cn("text-sm font-medium", getColor())}>
@@ -171,7 +171,7 @@ function QueryOperationDetails({
       {taskResults?.slice(0, 5).map((task) => (
         <div
           key={task.id}
-          className="p-2 bg-muted rounded-md text-xs border border-border"
+          className="p-2 bg-background rounded-md text-xs border border-border"
         >
           <div className="font-medium text-foreground">{task.title}</div>
           <div className="text-muted-foreground mt-1">

@@ -25,14 +25,14 @@ export default function ChatInput({ onSubmit, isLoading }: ChatInputProps) {
   };
 
   return (
-    <div className="border-t border-border p-4 bg-card">
+    <div className="border-t border-border p-4 bg-muted/30">
       <form onSubmit={handleSubmit} className="flex gap-2">
         <Input
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask me to create, find, update, or delete tasks..."
           disabled={isLoading}
-          className="flex-1 bg-input border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-ring"
+          className="flex-1 bg-background border-input text-foreground placeholder:text-muted-foreground focus-visible:ring-ring"
           autoFocus
         />
         <Button

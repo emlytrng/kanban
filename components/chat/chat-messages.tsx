@@ -35,7 +35,7 @@ export default function ChatMessages({
             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
               <Bot className="h-4 w-4 text-primary" />
             </div>
-            <div className="bg-muted rounded-lg px-4 py-2">
+            <div className="bg-muted/50 rounded-lg px-4 py-2">
               <div className="flex items-center gap-2">
                 <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">

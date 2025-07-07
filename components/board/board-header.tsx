@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 
-import { Bot } from "lucide-react";
+import { Bot, Palette } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useBoard, useTagActions } from "@/lib/store";
@@ -57,10 +57,10 @@ export default function BoardHeader({ onOpenChatAction }: BoardHeaderProps) {
           onClick={handleTagManagerOpen}
           variant="outline"
           size="sm"
-          className="flex items-center gap-2 bg-transparent"
+          className="flex items-center gap-2 bg-background border-input hover:bg-muted"
           disabled={!currentBoard}
         >
-          <Bot className="h-4 w-4" />
+          <Palette className="h-4 w-4" />
           Tags
         </Button>
 
@@ -83,7 +83,6 @@ export default function BoardHeader({ onOpenChatAction }: BoardHeaderProps) {
           isOpen={isTagManagerOpen}
           onClose={handleTagManagerClose}
           boardId={currentBoard.id}
-          disabled={!currentBoard}
         />
       )}
     </div>

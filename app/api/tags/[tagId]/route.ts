@@ -62,20 +62,15 @@ export const PATCH = withAuth(
         .single();
 
       if (updateError) {
-        // Handle unique constraint violations
-        if (updateError.code === "23505") {
-          if (updateError.message.includes("tags_board_id_name_key")) {
-            return NextResponse.json<ApiError>(
-              { error: "A tag with this name already exists on this board" },
-              { status: 409 }
-            );
-          }
-          if (updateError.message.includes("tags_board_id_color_key")) {
-            return NextResponse.json<ApiError>(
-              { error: "A tag with this color already exists on this board" },
-              { status: 409 }
-            );
-          }
+        // Handle unique constraint violations - only check for name uniqueness
+        if (
+          updateError.code === "23505" &&
+          updateError.message.includes("tags_board_id_name_key")
+        ) {
+          return NextResponse.json<ApiError>(
+            { error: "A tag with this name already exists on this board" },
+            { status: 409 }
+          );
         }
         return NextResponse.json<ApiError>(
           { error: updateError.message },

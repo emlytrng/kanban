@@ -52,7 +52,7 @@ export default function BoardSelector({ onDeleteBoard }: BoardSelectorProps) {
           <Button
             variant="outline"
             size="sm"
-            className="flex items-center gap-2 min-w-[200px] justify-between bg-transparent"
+            className="flex items-center gap-2 min-w-[200px] justify-between bg-background border-input hover:bg-muted"
           >
             <span className="truncate">
               {currentBoard?.title || "Select Board"}
@@ -96,15 +96,15 @@ export default function BoardSelector({ onDeleteBoard }: BoardSelectorProps) {
 
       {isAddingBoard && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-card border border-border rounded-lg p-6 w-96 shadow-lg">
-            <h3 className="text-lg font-semibold mb-4 text-card-foreground">
+          <div className="bg-background border border-border rounded-lg p-6 w-96 shadow-lg">
+            <h3 className="text-lg font-semibold mb-4 text-foreground">
               Create New Board
             </h3>
             <Input
               value={newBoardTitle}
               onChange={(e) => setNewBoardTitle(e.target.value)}
               placeholder="Enter board title..."
-              className="mb-4 bg-input border-border text-foreground placeholder:text-muted-foreground"
+              className="mb-4 bg-background border-input text-foreground placeholder:text-muted-foreground"
               autoFocus
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleAddBoard();

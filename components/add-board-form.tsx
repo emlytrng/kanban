@@ -56,6 +56,7 @@ export default function AddBoardForm() {
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Enter board title"
               disabled={isCreating}
+              className="bg-background border-input text-foreground placeholder:text-muted-foreground"
             />
           </div>
         </div>

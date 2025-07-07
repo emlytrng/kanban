@@ -41,15 +41,15 @@ export default function AddColumnModal({ disabled }: AddColumnModalProps) {
 
       {isAddingColumn && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-card border border-border rounded-lg p-6 w-96 shadow-lg">
-            <h3 className="text-lg font-semibold mb-4 text-card-foreground">
+          <div className="bg-background border border-border rounded-lg p-6 w-96 shadow-lg">
+            <h3 className="text-lg font-semibold mb-4 text-foreground">
               Add New Column
             </h3>
             <Input
               value={newColumnTitle}
               onChange={(e) => setNewColumnTitle(e.target.value)}
               placeholder="Enter column title..."
-              className="mb-4 bg-input border-border text-foreground placeholder:text-muted-foreground"
+              className="mb-4 bg-background border-input text-foreground placeholder:text-muted-foreground"
               autoFocus
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleAddColumn();

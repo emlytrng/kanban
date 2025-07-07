@@ -90,20 +90,15 @@ export const POST = withAuth(
         .single();
 
       if (createError) {
-        // Handle unique constraint violations
-        if (createError.code === "23505") {
-          if (createError.message.includes("tags_board_id_name_key")) {
-            return NextResponse.json<ApiError>(
-              { error: "A tag with this name already exists on this board" },
-              { status: 409 }
-            );
-          }
-          if (createError.message.includes("tags_board_id_color_key")) {
-            return NextResponse.json<ApiError>(
-              { error: "A tag with this color already exists on this board" },
-              { status: 409 }
-            );
-          }
+        // Handle unique constraint violations - only check for name uniqueness
+        if (
+          createError.code === "23505" &&
+          createError.message.includes("tags_board_id_name_key")
+        ) {
+          return NextResponse.json<ApiError>(
+            { error: "A tag with this name already exists on this board" },
+            { status: 409 }
+          );
         }
         return NextResponse.json<ApiError>(
           { error: createError.message },

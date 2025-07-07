@@ -2,16 +2,16 @@
 
 import { useState } from "react";
 
-import { Plus, Edit2, Trash2 } from "lucide-react";
+import { Plus, Edit2, Trash2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   useTags,
   useIsTagsLoading,
-  useError,
+  useTagError,
   useTagActions,
-} from "@/lib/store";
+} from "@/lib/stores/tag-store";
 
 interface TagManagerProps {
   boardId: string;
@@ -35,8 +35,8 @@ const TAG_COLORS = [
 export default function TagManager({ boardId }: TagManagerProps) {
   const tags = useTags();
   const isLoading = useIsTagsLoading();
-  const error = useError();
-  const { createTag, updateTag, deleteTag } = useTagActions();
+  const error = useTagError();
+  const { createTag, updateTag, deleteTag, clearError } = useTagActions();
 
   const [isCreating, setIsCreating] = useState(false);
   const [editingTagId, setEditingTagId] = useState<string | null>(null);
@@ -44,11 +44,18 @@ export default function TagManager({ boardId }: TagManagerProps) {
   const [newTagColor, setNewTagColor] = useState(TAG_COLORS[0]);
   const [editTagName, setEditTagName] = useState("");
   const [editTagColor, setEditTagColor] = useState("");
+  const [isCreatingTag, setIsCreatingTag] = useState(false);
 
   const handleCreateTag = async () => {
     if (!newTagName.trim()) return;
 
+    setIsCreatingTag(true);
+    clearError();
+
     const success = await createTag(boardId, newTagName.trim(), newTagColor);
+
+    setIsCreatingTag(false);
+
     if (success) {
       setNewTagName("");
       setNewTagColor(TAG_COLORS[0]);
@@ -58,6 +65,8 @@ export default function TagManager({ boardId }: TagManagerProps) {
 
   const handleUpdateTag = async (tagId: string) => {
     if (!editTagName.trim()) return;
+
+    clearError();
 
     const success = await updateTag(tagId, {
       name: editTagName.trim(),
@@ -77,6 +86,7 @@ export default function TagManager({ boardId }: TagManagerProps) {
         "Are you sure you want to delete this tag? It will be removed from all cards."
       )
     ) {
+      clearError();
       await deleteTag(tagId);
     }
   };
@@ -85,18 +95,26 @@ export default function TagManager({ boardId }: TagManagerProps) {
     setEditingTagId(tag.id);
     setEditTagName(tag.name);
     setEditTagColor(tag.color);
+    clearError();
   };
 
   const cancelEditing = () => {
     setEditingTagId(null);
     setEditTagName("");
     setEditTagColor("");
+    clearError();
   };
 
   const cancelCreating = () => {
     setIsCreating(false);
     setNewTagName("");
     setNewTagColor(TAG_COLORS[0]);
+    clearError();
+  };
+
+  const handleStartCreating = () => {
+    setIsCreating(true);
+    clearError();
   };
 
   if (isLoading) {
@@ -112,20 +130,23 @@ export default function TagManager({ boardId }: TagManagerProps) {
   return (
     <div className="p-6 space-y-4">
       <div className="flex justify-end">
-        <Button
-          onClick={() => setIsCreating(true)}
-          size="sm"
-          className="bg-primary text-primary-foreground hover:bg-primary/90"
-          disabled={isCreating}
-        >
+        <Button onClick={handleStartCreating} size="sm" disabled={isCreating}>
           <Plus className="h-4 w-4 mr-2" />
           Add Tag
         </Button>
       </div>
 
       {error && (
-        <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
-          <p className="text-sm text-destructive">{error}</p>
+        <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md flex items-start justify-between">
+          <p className="text-sm text-destructive flex-1">{error}</p>
+          <Button
+            onClick={clearError}
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 text-destructive hover:text-destructive/80 hover:bg-destructive/10 flex-shrink-0 ml-2"
+          >
+            <X className="h-4 w-4" />
+          </Button>
         </div>
       )}
 
@@ -139,8 +160,8 @@ export default function TagManager({ boardId }: TagManagerProps) {
               value={newTagName}
               onChange={(e) => setNewTagName(e.target.value)}
               placeholder="Enter tag name"
-              className="bg-input border-border text-foreground"
               autoFocus
+              disabled={isCreatingTag}
             />
           </div>
 
@@ -151,7 +172,8 @@ export default function TagManager({ boardId }: TagManagerProps) {
                 <button
                   key={color}
                   onClick={() => setNewTagColor(color)}
-                  className={`w-8 h-8 rounded-full border-2 transition-all ${
+                  disabled={isCreatingTag}
+                  className={`w-8 h-8 rounded-full border-2 transition-all disabled:opacity-50 ${
                     newTagColor === color
                       ? "border-foreground scale-110"
                       : "border-border hover:scale-105"
@@ -166,15 +188,15 @@ export default function TagManager({ boardId }: TagManagerProps) {
             <Button
               onClick={handleCreateTag}
               size="sm"
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
+              disabled={isCreatingTag || !newTagName.trim()}
             >
-              Create
+              {isCreatingTag ? "Creating..." : "Create"}
             </Button>
             <Button
               onClick={cancelCreating}
               variant="ghost"
               size="sm"
-              className="text-muted-foreground hover:text-foreground"
+              disabled={isCreatingTag}
             >
               Cancel
             </Button>
@@ -203,7 +225,6 @@ export default function TagManager({ boardId }: TagManagerProps) {
                     <Input
                       value={editTagName}
                       onChange={(e) => setEditTagName(e.target.value)}
-                      className="bg-input border-border text-foreground"
                       autoFocus
                     />
                   </div>
@@ -229,16 +250,11 @@ export default function TagManager({ boardId }: TagManagerProps) {
                     <Button
                       onClick={() => handleUpdateTag(tag.id)}
                       size="sm"
-                      className="bg-primary text-primary-foreground hover:bg-primary/90"
+                      disabled={!editTagName.trim()}
                     >
                       Save
                     </Button>
-                    <Button
-                      onClick={cancelEditing}
-                      variant="ghost"
-                      size="sm"
-                      className="text-muted-foreground hover:text-foreground"
-                    >
+                    <Button onClick={cancelEditing} variant="ghost" size="sm">
                       Cancel
                     </Button>
                   </div>
@@ -258,7 +274,7 @@ export default function TagManager({ boardId }: TagManagerProps) {
                       onClick={() => startEditing(tag)}
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-accent"
+                      className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
                       disabled={isLoading}
                     >
                       <Edit2 className="h-4 w-4" />
@@ -267,7 +283,7 @@ export default function TagManager({ boardId }: TagManagerProps) {
                       onClick={() => handleDeleteTag(tag.id)}
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-accent"
+                      className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-muted"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

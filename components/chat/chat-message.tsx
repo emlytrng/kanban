@@ -20,7 +20,7 @@ export default function ChatMessage({ message }: ChatMessageProps) {
       )}
     >
       {message.type === "assistant" && (
-        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
+        <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0 mt-1">
           <Bot className="h-4 w-4 text-primary" />
         </div>
       )}
@@ -30,7 +30,7 @@ export default function ChatMessage({ message }: ChatMessageProps) {
           "max-w-[80%] rounded-lg px-4 py-2",
           message.type === "user"
             ? "bg-primary text-primary-foreground ml-auto"
-            : "bg-muted text-muted-foreground"
+            : "bg-muted/50 text-foreground"
         )}
       >
         <div className="whitespace-pre-wrap text-sm">{message.content}</div>
@@ -43,7 +43,7 @@ export default function ChatMessage({ message }: ChatMessageProps) {
       </div>
 
       {message.type === "user" && (
-        <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center flex-shrink-0 mt-1">
+        <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0 mt-1">
           <User className="h-4 w-4 text-secondary-foreground" />
         </div>
       )}

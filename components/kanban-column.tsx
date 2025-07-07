@@ -46,7 +46,7 @@ function KanbanColumn({ column, index }: KanbanColumnProps) {
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
-          className={`shrink-0 w-80 bg-card rounded-lg p-4 transition-colors duration-200 bg-muted/50 rounded-md ${
+          className={`shrink-0 w-80 bg-muted/30 border border-border rounded-lg p-4 transition-colors duration-200 flex flex-col ${
             snapshot.isDragging
               ? "shadow-lg ring-2 ring-ring rotate-1"
               : "shadow-sm"
@@ -57,10 +57,10 @@ function KanbanColumn({ column, index }: KanbanColumnProps) {
             className="flex items-center justify-between mb-4 cursor-grab active:cursor-grabbing"
           >
             <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-sm text-card-foreground">
+              <h3 className="font-semibold text-sm text-foreground">
                 {column.title}
               </h3>
-              <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full border border-border">
+              <span className="text-xs text-muted-foreground bg-background px-2 py-1 rounded-full border border-border">
                 {column.cards.length}
               </span>
             </div>
@@ -69,7 +69,7 @@ function KanbanColumn({ column, index }: KanbanColumnProps) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-card-foreground hover:bg-accent"
+                  className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
                 >
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
@@ -89,72 +89,74 @@ function KanbanColumn({ column, index }: KanbanColumnProps) {
             </DropdownMenu>
           </div>
 
-          <Droppable droppableId={column.id} type="card">
-            {(provided, snapshot) => (
-              <div
-                ref={provided.innerRef}
-                {...provided.droppableProps}
-                className={`min-h-[200px] transition-colors duration-200 rounded-md ${
-                  snapshot.isDraggingOver
-                    ? "bg-accent/50 border border-border"
-                    : ""
-                }`}
-              >
-                {column.cards.map((card, cardIndex) => (
-                  <KanbanCard
-                    key={card.id}
-                    card={card}
-                    index={cardIndex}
-                    columnId={column.id}
-                  />
-                ))}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
+          <div className="flex flex-col flex-1">
+            <Droppable droppableId={column.id} type="card">
+              {(provided, snapshot) => (
+                <div
+                  ref={provided.innerRef}
+                  {...provided.droppableProps}
+                  className={`flex-1 min-h-[200px] transition-colors duration-200 rounded-md ${
+                    snapshot.isDraggingOver
+                      ? "bg-muted/50 border border-dashed border-border"
+                      : ""
+                  }`}
+                >
+                  {column.cards.map((card, cardIndex) => (
+                    <KanbanCard
+                      key={card.id}
+                      card={card}
+                      index={cardIndex}
+                      columnId={column.id}
+                    />
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
 
-          {isAddingCard ? (
-            <div className="mt-3">
-              <Input
-                value={newCardTitle}
-                onChange={(e) => setNewCardTitle(e.target.value)}
-                placeholder="Enter card title..."
-                className="mb-2 bg-input border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-ring"
-                autoFocus
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleAddCard();
-                  if (e.key === "Escape") setIsAddingCard(false);
-                }}
-              />
-              <div className="flex gap-2">
-                <Button
-                  onClick={handleAddCard}
-                  size="sm"
-                  className="bg-primary text-primary-foreground hover:bg-primary/90"
-                >
-                  Add Card
-                </Button>
-                <Button
-                  onClick={() => setIsAddingCard(false)}
-                  variant="ghost"
-                  size="sm"
-                  className="text-muted-foreground hover:text-card-foreground hover:bg-accent"
-                >
-                  Cancel
-                </Button>
+            {isAddingCard ? (
+              <div className="mt-3">
+                <Input
+                  value={newCardTitle}
+                  onChange={(e) => setNewCardTitle(e.target.value)}
+                  placeholder="Enter card title..."
+                  className="mb-2 bg-background border-input text-foreground placeholder:text-muted-foreground focus-visible:ring-ring"
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleAddCard();
+                    if (e.key === "Escape") setIsAddingCard(false);
+                  }}
+                />
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleAddCard}
+                    size="sm"
+                    className="bg-primary text-primary-foreground hover:bg-primary/90"
+                  >
+                    Add Card
+                  </Button>
+                  <Button
+                    onClick={() => setIsAddingCard(false)}
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground hover:text-card-foreground hover:bg-accent"
+                  >
+                    Cancel
+                  </Button>
+                </div>
               </div>
-            </div>
-          ) : (
-            <Button
-              onClick={() => setIsAddingCard(true)}
-              variant="ghost"
-              size="sm"
-              className="w-full mt-3 justify-start text-muted-foreground hover:text-card-foreground hover:bg-accent border border-dashed border-border hover:border-muted-foreground/50 transition-colors"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add a card
-            </Button>
-          )}
+            ) : (
+              <Button
+                onClick={() => setIsAddingCard(true)}
+                variant="ghost"
+                size="sm"
+                className="w-full mt-3 justify-start text-muted-foreground hover:text-foreground hover:bg-muted border border-dashed border-border hover:border-muted-foreground/50 transition-colors"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add a card
+              </Button>
+            )}
+          </div>
         </div>
       )}
     </Draggable>

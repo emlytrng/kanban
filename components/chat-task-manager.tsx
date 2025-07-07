@@ -219,10 +219,10 @@ export default function ChatTaskManager({
     <>
       <div className="fixed top-0 right-0 h-full bg-background border-l border-border shadow-2xl z-40 transition-all duration-300 ease-in-out w-full sm:w-full md:w-96">
         <div className="h-full flex flex-col">
-          <div className="flex items-center justify-between p-4 border-b border-border bg-card/50">
+          <div className="flex items-center justify-between p-4 border-b border-border bg-muted/30">
             <div className="flex items-center gap-2">
               <Bot className="h-4 w-4 text-primary" />
-              <h2 className="text-sm font-semibold text-card-foreground">
+              <h2 className="text-sm font-semibold text-foreground">
                 AI Task Manager
               </h2>
             </div>
@@ -230,7 +230,7 @@ export default function ChatTaskManager({
               variant="ghost"
               size="sm"
               onClick={onCloseAction}
-              className="w-6 h-6 p-0 text-muted-foreground hover:text-foreground hover:bg-accent"
+              className="w-6 h-6 p-0 text-muted-foreground hover:text-foreground hover:bg-muted"
             >
               <X className="h-3 w-3" />
             </Button>

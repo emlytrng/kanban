@@ -37,6 +37,7 @@ interface TagState {
       updates: { name?: string; color?: string }
     ) => Promise<boolean>;
     deleteTag: (tagId: string) => Promise<boolean>;
+    clearError: () => void;
   };
 }
 
@@ -127,7 +128,7 @@ export const useTagStore = create(
           // Rollback optimistic update
           set((state) => ({
             tags: state.tags.filter((tag) => tag.id !== tempId),
-            error: "Failed to create tag: " + errorMessage,
+            error: errorMessage,
           }));
 
           return null;
@@ -190,7 +191,7 @@ export const useTagStore = create(
             tags: state.tags.map((tag) =>
               tag.id === tagId ? originalTag : tag
             ),
-            error: "Failed to update tag: " + errorMessage,
+            error: errorMessage,
           }));
 
           return false;
@@ -230,11 +231,15 @@ export const useTagStore = create(
             tags: [...state.tags, tagToDelete].sort((a, b) =>
               a.name.localeCompare(b.name)
             ),
-            error: "Failed to delete tag: " + errorMessage,
+            error: errorMessage,
           }));
 
           return false;
         }
+      },
+
+      clearError: () => {
+        set({ error: null });
       },
     },
   }))

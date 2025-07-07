@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, memo } from "react";
+import { useState } from "react";
 
 import { Draggable } from "@hello-pangea/dnd";
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
@@ -23,7 +23,7 @@ interface KanbanCardProps {
   columnId: string;
 }
 
-function KanbanCard({ card, index, columnId }: KanbanCardProps) {
+export default function KanbanCard({ card, index, columnId }: KanbanCardProps) {
   const { updateCard, deleteCard } = useKanbanActions();
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(card.title);
@@ -157,7 +157,7 @@ function KanbanCard({ card, index, columnId }: KanbanCardProps) {
               )}
 
               {card.tags && card.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1 mb-3">
+                <div className="flex flex-wrap gap-1">
                   {card.tags.map((tag) => (
                     <span
                       key={tag.id}
@@ -176,5 +176,3 @@ function KanbanCard({ card, index, columnId }: KanbanCardProps) {
     </Draggable>
   );
 }
-
-export default memo(KanbanCard);
