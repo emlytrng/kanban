@@ -84,6 +84,49 @@ export interface Database {
           updated_at?: string;
         };
       };
+      tags: {
+        Row: {
+          id: string;
+          board_id: string;
+          name: string;
+          color: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          board_id: string;
+          name: string;
+          color: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          board_id?: string;
+          name?: string;
+          color?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      card_tags: {
+        Row: {
+          card_id: string;
+          tag_id: string;
+          created_at: string;
+        };
+        Insert: {
+          card_id: string;
+          tag_id: string;
+          created_at?: string;
+        };
+        Update: {
+          card_id?: string;
+          tag_id?: string;
+          created_at?: string;
+        };
+      };
     };
     Views: {
       [_ in never]: never;

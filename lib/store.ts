@@ -3,7 +3,7 @@ import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 
 import type { TaskOperationResponse } from "@/schemas/task-operation-response";
-import type { Board, Card, Column } from "@/types";
+import type { Board, Card, Column, Tag } from "@/types";
 import type {
   GetBoardsResponse,
   CreateBoardResponse,
@@ -12,13 +12,18 @@ import type {
   UpdateCardResponse,
   CreateColumnResponse,
   ChatTaskManagementResponse,
+  GetTagsResponse,
+  CreateTagResponse,
+  UpdateTagResponse,
 } from "@/types/api";
 
 interface KanbanState {
   board: Board | null;
   boards: Board[];
   columns: Column[];
+  tags: Tag[];
   isLoading: boolean;
+  isTagsLoading: boolean;
   error: string | null;
   isDragging: boolean;
 
@@ -56,6 +61,19 @@ interface KanbanState {
       columns: Column[],
       getAllTasks: () => Card[]
     ) => Promise<TaskOperationResponse>;
+    // Tag actions
+    fetchTags: (boardId: string) => Promise<void>;
+    createTag: (
+      boardId: string,
+      name: string,
+      color: string
+    ) => Promise<Tag | null>;
+    updateTag: (
+      tagId: string,
+      updates: { name?: string; color?: string }
+    ) => Promise<boolean>;
+    deleteTag: (tagId: string) => Promise<boolean>;
+    updateCardTags: (cardId: string, tagIds: string[]) => Promise<boolean>;
   };
 }
 
@@ -74,7 +92,9 @@ export const useKanbanStore = create(
     board: null,
     boards: [],
     columns: [],
+    tags: [],
     isLoading: true,
+    isTagsLoading: false,
     error: null,
     isDragging: false,
 
@@ -139,6 +159,11 @@ export const useKanbanStore = create(
             columns: data.columns,
             isLoading: false,
           });
+
+          // Fetch tags for this board
+          if (data.board) {
+            get().actions.fetchTags(data.board.id);
+          }
         } catch (error) {
           const errorMessage = getErrorMessage(error);
           console.error("Error fetching board:", error);
@@ -220,7 +245,7 @@ export const useKanbanStore = create(
 
         const currentBoard = get().board;
         if (currentBoard?.id === boardId) {
-          set({ board: null, columns: [] });
+          set({ board: null, columns: [], tags: [] });
         }
 
         try {
@@ -423,6 +448,7 @@ export const useKanbanStore = create(
           assignee: "You",
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
+          tags: [],
         };
 
         // Optimistic update
@@ -846,6 +872,316 @@ export const useKanbanStore = create(
           throw error;
         }
       },
+
+      // Tag actions
+      fetchTags: async (boardId: string) => {
+        set({ isTagsLoading: true, error: null });
+        try {
+          const response = await fetch(`/api/tags?boardId=${boardId}`);
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Failed to fetch tags");
+          }
+
+          const data: GetTagsResponse = await response.json();
+
+          set({
+            tags: data.tags || [],
+            isTagsLoading: false,
+          });
+        } catch (error) {
+          const errorMessage = getErrorMessage(error);
+          console.error("Error fetching tags:", error);
+          set({
+            error: "Failed to fetch tags: " + errorMessage,
+            isTagsLoading: false,
+          });
+        }
+      },
+
+      createTag: async (boardId: string, name: string, color: string) => {
+        const tempId = uuidv4();
+        const newTag: Tag = {
+          id: tempId,
+          boardId,
+          name: name.trim(),
+          color: color.toUpperCase(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+
+        // Optimistic update
+        set((state) => ({
+          tags: [...state.tags, newTag],
+          error: null,
+        }));
+
+        try {
+          const response = await fetch("/api/tags", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              boardId,
+              name: name.trim(),
+              color: color.toUpperCase(),
+            }),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Failed to create tag");
+          }
+
+          const data: CreateTagResponse = await response.json();
+
+          // Update with actual tag ID from server
+          set((state) => ({
+            tags: state.tags.map((tag) => (tag.id === tempId ? data.tag : tag)),
+          }));
+
+          return data.tag;
+        } catch (error) {
+          const errorMessage = getErrorMessage(error);
+          console.error("Error creating tag:", error);
+
+          // Rollback optimistic update
+          set((state) => ({
+            tags: state.tags.filter((tag) => tag.id !== tempId),
+            error: "Failed to create tag: " + errorMessage,
+          }));
+
+          return null;
+        }
+      },
+
+      updateTag: async (
+        tagId: string,
+        updates: { name?: string; color?: string }
+      ) => {
+        const originalTag = get().tags.find((tag) => tag.id === tagId);
+        if (!originalTag) {
+          set({ error: "Tag not found" });
+          return false;
+        }
+
+        // Optimistic update
+        set((state) => ({
+          tags: state.tags.map((tag) => {
+            if (tag.id === tagId) {
+              return {
+                ...tag,
+                ...updates,
+                updatedAt: new Date().toISOString(),
+              };
+            }
+            return tag;
+          }),
+          error: null,
+        }));
+
+        try {
+          const response = await fetch(`/api/tags/${tagId}`, {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(updates),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Failed to update tag");
+          }
+
+          const data: UpdateTagResponse = await response.json();
+
+          // Update with server response
+          set((state) => ({
+            tags: state.tags.map((tag) => (tag.id === tagId ? data.tag : tag)),
+          }));
+
+          return true;
+        } catch (error) {
+          const errorMessage = getErrorMessage(error);
+          console.error("Error updating tag:", error);
+
+          // Rollback on error
+          set((state) => ({
+            tags: state.tags.map((tag) =>
+              tag.id === tagId ? originalTag : tag
+            ),
+            error: "Failed to update tag: " + errorMessage,
+          }));
+
+          return false;
+        }
+      },
+
+      deleteTag: async (tagId: string) => {
+        const tagToDelete = get().tags.find((tag) => tag.id === tagId);
+        if (!tagToDelete) {
+          set({ error: "Tag not found" });
+          return false;
+        }
+
+        // Optimistic update - remove tag from state and from all cards
+        set((state) => ({
+          tags: state.tags.filter((tag) => tag.id !== tagId),
+          columns: state.columns.map((col) => ({
+            ...col,
+            cards: col.cards.map((card) => ({
+              ...card,
+              tags: card.tags?.filter((tag) => tag.id !== tagId) || [],
+            })),
+          })),
+          error: null,
+        }));
+
+        try {
+          const response = await fetch(`/api/tags/${tagId}`, {
+            method: "DELETE",
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Failed to delete tag");
+          }
+
+          return true;
+        } catch (error) {
+          const errorMessage = getErrorMessage(error);
+          console.error("Error deleting tag:", error);
+
+          // Rollback on error - restore tag and add it back to cards that had it
+          set((state) => ({
+            tags: [...state.tags, tagToDelete].sort((a, b) =>
+              a.name.localeCompare(b.name)
+            ),
+            error: "Failed to delete tag: " + errorMessage,
+          }));
+
+          return false;
+        }
+      },
+
+      updateCardTags: async (cardId: string, tagIds: string[]) => {
+        // Find the card and its column
+        let targetColumnId: string | null = null;
+        let originalCard: Card | null = null;
+
+        for (const col of get().columns) {
+          const card = col.cards.find((c) => c.id === cardId);
+          if (card) {
+            targetColumnId = col.id;
+            originalCard = card;
+            break;
+          }
+        }
+
+        if (!targetColumnId || !originalCard) {
+          set({ error: "Card not found" });
+          return false;
+        }
+
+        const tags = get().tags;
+        const selectedTags = tags.filter((tag) => tagIds.includes(tag.id));
+
+        // Optimistic update
+        set((state) => ({
+          columns: state.columns.map((col) => {
+            if (col.id === targetColumnId) {
+              return {
+                ...col,
+                cards: col.cards.map((card) => {
+                  if (card.id === cardId) {
+                    return {
+                      ...card,
+                      tags: selectedTags,
+                      updatedAt: new Date().toISOString(),
+                    };
+                  }
+                  return card;
+                }),
+              };
+            }
+            return col;
+          }),
+          error: null,
+        }));
+
+        try {
+          const response = await fetch(`/api/cards/${cardId}/tags`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ tagIds }),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Failed to update card tags");
+          }
+
+          const data = await response.json();
+
+          // Check if the response has the expected structure
+          if (data.success && data.card && data.card.tags) {
+            // Update with server response
+            set((state) => ({
+              columns: state.columns.map((col) => {
+                if (col.id === targetColumnId) {
+                  return {
+                    ...col,
+                    cards: col.cards.map((card) => {
+                      if (card.id === cardId) {
+                        return {
+                          ...card,
+                          tags: data.card.tags,
+                          updatedAt: data.card.updatedAt,
+                        };
+                      }
+                      return card;
+                    }),
+                  };
+                }
+                return col;
+              }),
+            }));
+          } else {
+            console.warn("Unexpected API response structure:", data);
+          }
+
+          return true;
+        } catch (error) {
+          const errorMessage = getErrorMessage(error);
+          console.error("Error updating card tags:", error);
+
+          // Rollback on error
+          set((state) => ({
+            columns: state.columns.map((col) => {
+              if (col.id === targetColumnId) {
+                return {
+                  ...col,
+                  cards: col.cards.map((card) => {
+                    if (card.id === cardId) {
+                      return originalCard!;
+                    }
+                    return card;
+                  }),
+                };
+              }
+              return col;
+            }),
+            error: "Failed to update card tags: " + errorMessage,
+          }));
+
+          return false;
+        }
+      },
     },
   }))
 );
@@ -853,7 +1189,10 @@ export const useKanbanStore = create(
 export const useBoard = () => useKanbanStore((state) => state.board);
 export const useBoards = () => useKanbanStore((state) => state.boards);
 export const useColumns = () => useKanbanStore((state) => state.columns);
+export const useTags = () => useKanbanStore((state) => state.tags);
 export const useIsLoading = () => useKanbanStore((state) => state.isLoading);
+export const useIsTagsLoading = () =>
+  useKanbanStore((state) => state.isTagsLoading);
 export const useError = () => useKanbanStore((state) => state.error);
 export const useIsDragging = () => useKanbanStore((state) => state.isDragging);
 

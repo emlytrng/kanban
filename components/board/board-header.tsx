@@ -1,11 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { useRouter } from "next/navigation";
 
-import { Plus, Bot, ChevronDown, Trash2, AlertTriangle } from "lucide-react";
+import {
+  Plus,
+  Bot,
+  ChevronDown,
+  Trash2,
+  AlertTriangle,
+  Palette,
+  X,
+} from "lucide-react";
 
+import TagManager from "@/components/tag-manager";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -30,11 +39,18 @@ export default function BoardHeader({ onOpenChatAction }: BoardHeaderProps) {
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isTagManagerOpen, setIsTagManagerOpen] = useState(false);
 
-  const { addColumn, addBoard, deleteBoard } = useActions();
+  const { addColumn, addBoard, deleteBoard, fetchTags } = useActions();
   const currentBoard = useBoard();
   const boards = useBoards();
   const router = useRouter();
+
+  useEffect(() => {
+    if (currentBoard) {
+      fetchTags(currentBoard.id);
+    }
+  }, [currentBoard, fetchTags]);
 
   const handleAddColumn = () => {
     if (newColumnTitle.trim()) {
@@ -153,6 +169,17 @@ export default function BoardHeader({ onOpenChatAction }: BoardHeaderProps) {
         >
           <Plus className="h-4 w-4" />
           Add Column
+        </Button>
+
+        <Button
+          onClick={() => setIsTagManagerOpen(true)}
+          variant="outline"
+          size="sm"
+          className="flex items-center gap-2"
+          disabled={!currentBoard}
+        >
+          <Palette className="h-4 w-4" />
+          Tags
         </Button>
 
         <Button
@@ -328,6 +355,28 @@ export default function BoardHeader({ onOpenChatAction }: BoardHeaderProps) {
                 )}
               </Button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tag Manager Modal */}
+      {isTagManagerOpen && currentBoard && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-card border border-border rounded-lg p-6 w-[600px] max-h-[80vh] overflow-y-auto shadow-lg">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-card-foreground">
+                Manage Tags
+              </h3>
+              <Button
+                onClick={() => setIsTagManagerOpen(false)}
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <TagManager boardId={currentBoard.id} />
           </div>
         </div>
       )}

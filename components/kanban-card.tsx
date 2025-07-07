@@ -5,6 +5,7 @@ import { useState, memo } from "react";
 import { Draggable } from "@hello-pangea/dnd";
 import { MoreHorizontal, Pencil, Trash2, Calendar } from "lucide-react";
 
+import CardTagSelector from "@/components/card-tag-selector";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -47,21 +48,6 @@ function KanbanCard({ card, index, columnId }: KanbanCardProps) {
   const handleDeleteCard = () => {
     deleteCard(columnId, card.id);
   };
-
-  // Generate random labels for demo purposes
-  const getRandomLabels = () => {
-    const labels = [
-      "bug",
-      "feature",
-      "enhancement",
-      "documentation",
-      "priority",
-    ];
-    const randomIndex = Math.floor(Math.random() * labels.length);
-    return [labels[randomIndex]];
-  };
-
-  const cardLabels = card.labels || getRandomLabels();
 
   // Generate random due date for demo purposes
   const getDueDate = () => {
@@ -110,6 +96,10 @@ function KanbanCard({ card, index, columnId }: KanbanCardProps) {
                 placeholder="Description (optional)"
                 className="resize-none text-sm bg-input border-border text-card-foreground placeholder:text-muted-foreground focus-visible:ring-ring"
                 rows={3}
+              />
+              <CardTagSelector
+                cardId={card.id}
+                selectedTags={card.tags || []}
               />
               <div className="flex gap-2">
                 <Button
@@ -179,13 +169,19 @@ function KanbanCard({ card, index, columnId }: KanbanCardProps) {
                 </p>
               )}
 
-              <div className="flex flex-wrap gap-1 mb-3">
-                {cardLabels.map((label, i) => (
-                  <span key={i} className={`label label-${label}`}>
-                    {label.charAt(0).toUpperCase() + label.slice(1)}
-                  </span>
-                ))}
-              </div>
+              {card.tags && card.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1 mb-3">
+                  {card.tags.map((tag) => (
+                    <span
+                      key={tag.id}
+                      className="px-2 py-1 text-xs font-medium rounded-full text-white"
+                      style={{ backgroundColor: tag.color }}
+                    >
+                      {tag.name}
+                    </span>
+                  ))}
+                </div>
+              )}
 
               <div className="flex items-center text-xs text-muted-foreground">
                 <div className="flex items-center">

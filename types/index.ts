@@ -1,7 +1,7 @@
 export interface User {
   id: string;
-  name: string;
-  avatar: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Board {
@@ -9,7 +9,15 @@ export interface Board {
   title: string;
   createdAt: string;
   updatedAt: string;
-  users?: User[];
+}
+
+export interface Tag {
+  id: string;
+  boardId: string;
+  name: string;
+  color: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Card {
@@ -19,7 +27,7 @@ export interface Card {
   assignee?: string;
   createdAt: string;
   updatedAt: string;
-  labels?: string[];
+  tags?: Tag[];
 }
 
 export interface Column {

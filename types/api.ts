@@ -1,6 +1,6 @@
 import type { TaskOperationResponse } from "@/schemas/task-operation-response";
 
-import type { Board, Card, Column } from "./index";
+import type { Board, Card, Column, Tag } from "./index";
 
 // Base API response types
 export type ApiResponse<T = unknown> = {
@@ -63,3 +63,24 @@ export type ReorderColumnsResponse = {
 
 // AI API responses
 export type ChatTaskManagementResponse = TaskOperationResponse;
+
+// Tag API responses
+export interface GetTagsResponse {
+  tags: Tag[];
+}
+
+export interface CreateTagResponse {
+  tag: Tag;
+}
+
+export interface UpdateTagResponse {
+  tag: Tag;
+}
+
+export interface DeleteTagResponse {
+  success: boolean;
+}
+
+export interface UpdateCardTagsResponse {
+  success: boolean;
+}

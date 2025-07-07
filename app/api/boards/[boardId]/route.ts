@@ -4,6 +4,36 @@ import { withAuth } from "@/lib/auth-utils";
 import { createSupabaseClient } from "@/lib/supabase";
 import type { GetBoardResponse, ApiError } from "@/types/api";
 
+// Types for joined query result
+interface CardTagJoin {
+  tags: {
+    id: string;
+    name: string;
+    color: string;
+    created_at: string;
+    updated_at: string;
+  };
+}
+
+interface CardWithTags {
+  id: string;
+  title: string;
+  description?: string;
+  position: number;
+  created_at: string;
+  updated_at: string;
+  card_tags: CardTagJoin[];
+}
+
+interface ColumnWithCardsAndTags {
+  id: string;
+  title: string;
+  position: number;
+  created_at: string;
+  updated_at: string;
+  cards: CardWithTags[];
+}
+
 // GET /api/boards/[boardId] - Get a specific board with its columns and cards
 export const GET = withAuth(
   async (
@@ -52,7 +82,16 @@ export const GET = withAuth(
           description,
           position,
           created_at,
-          updated_at
+          updated_at,
+          card_tags (
+            tags (
+              id,
+              name,
+              color,
+              created_at,
+              updated_at
+            )
+          )
         )
       `
         )
@@ -66,34 +105,35 @@ export const GET = withAuth(
         );
       }
 
+      const typedColumnsData = columnsData as unknown as ColumnWithCardsAndTags[];
+
       // Transform data to match our app's structure
-      const columns = columnsData.map((col) => ({
+      const columns = typedColumnsData.map((col) => ({
         id: col.id,
         title: col.title,
         cards: (col.cards || [])
-          .sort(
-            (a: { position: number }, b: { position: number }) =>
-              a.position - b.position
-          )
-          .map(
-            (card: {
-              id: string;
-              title: string;
-              description: string | null;
-              created_at: string;
-              updated_at: string;
-            }) => ({
-              id: card.id,
-              title: card.title,
-              description: card.description || "",
-              assignee: "You", // Default assignee
-              createdAt: card.created_at,
-              updatedAt: card.updated_at,
-            })
-          ),
+          .sort((a, b) => a.position - b.position)
+          .map((card) => ({
+            id: card.id,
+            title: card.title,
+            description: card.description || "",
+            assignee: "You", // Default assignee
+            createdAt: card.created_at,
+            updatedAt: card.updated_at,
+            tags: (card.card_tags || []).map((ct) => ({
+              id: ct.tags.id,
+              boardId: boardId,
+              name: ct.tags.name,
+              color: ct.tags.color,
+              createdAt: ct.tags.created_at,
+              updatedAt: ct.tags.updated_at,
+            })),
+          })),
         createdAt: col.created_at,
         updatedAt: col.updated_at,
       }));
+
+      console.log(JSON.stringify(columnsData))
 
       const board = {
         id: boardData.id,
