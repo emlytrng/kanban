@@ -133,8 +133,6 @@ export const GET = withAuth(
         updatedAt: col.updated_at,
       }));
 
-      console.log(JSON.stringify(columnsData))
-
       const board = {
         id: boardData.id,
         title: boardData.title,
