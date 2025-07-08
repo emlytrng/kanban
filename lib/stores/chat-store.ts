@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 
 import type { TaskOperationResponse } from "@/schemas/task-operation-response";
-import type { Column, Card } from "@/types";
+import type { Column, Task } from "@/types";
 import type { ChatTaskManagementResponse } from "@/types/api";
 
 const getErrorMessage = (error: unknown): string => {
@@ -22,7 +22,7 @@ interface ChatState {
     chatWithAITaskManager: (
       input: string,
       columns: Column[],
-      getAllTasks: () => Card[]
+      getAllTasks: () => Task[]
     ) => Promise<TaskOperationResponse>;
   };
 }
@@ -35,7 +35,7 @@ export const useChatStore = create(
       chatWithAITaskManager: async (
         input: string,
         columns: Column[],
-        getAllTasks: () => Card[]
+        getAllTasks: () => Task[]
       ) => {
         try {
           const allTasks = getAllTasks();

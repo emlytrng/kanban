@@ -32,15 +32,15 @@ export default function ChatTaskManager({
   ]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { addCard, updateCard, deleteCard, moveCard } = useKanbanActions();
+  const { addTask, updateTask, deleteTask, moveTask } = useKanbanActions();
   const { chatWithAITaskManager } = useChatActions();
 
   const columns = useColumns();
 
   const getAllTasks = (): Task[] => {
     return columns.flatMap((column) =>
-      column.cards.map((card) => ({
-        ...card,
+      column.tasks.map((task) => ({
+        ...task,
         columnId: column.id,
         columnTitle: column.title,
       }))
@@ -85,7 +85,7 @@ export default function ChatTaskManager({
                 throw new Error("Missing required fields for task creation");
               }
 
-              addCard(columnId, title || "");
+              addTask(columnId, title || "");
               operationResult = {
                 type: "create" as const,
                 details: { title, columnTitle },
@@ -111,7 +111,7 @@ export default function ChatTaskManager({
                 throw new Error("Missing required fields for task update");
               }
 
-              await updateCard(taskId, updates, columnId);
+              await updateTask(taskId, updates, columnId);
               operationResult = {
                 type: "update" as const,
                 details: { taskId },
@@ -147,16 +147,16 @@ export default function ChatTaskManager({
                 throw new Error("Missing required fields for task move");
               }
 
-              const sourceIndex = sourceColumn.cards.findIndex(
-                (card) => card.id === taskId
+              const sourceIndex = sourceColumn.tasks.findIndex(
+                (task) => task.id === taskId
               );
               if (sourceIndex !== -1) {
-                moveCard(
+                moveTask(
                   taskId,
                   sourceColumnId,
                   targetColumnId,
                   sourceIndex,
-                  targetColumn.cards.length
+                  targetColumn.tasks.length
                 );
                 operationResult = {
                   type: "move" as const,
@@ -178,7 +178,7 @@ export default function ChatTaskManager({
                 throw new Error("Missing required fields for task deletion");
               }
 
-              deleteCard(columnId, taskId);
+              deleteTask(columnId, taskId);
               operationResult = {
                 type: "delete" as const,
                 details: { title },

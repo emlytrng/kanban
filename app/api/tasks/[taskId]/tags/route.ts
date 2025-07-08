@@ -2,20 +2,20 @@ import { NextResponse } from "next/server";
 
 import { withAuth } from "@/lib/auth-utils";
 import { createSupabaseClient } from "@/lib/supabase";
-import type { UpdateCardTagsResponse, ApiError } from "@/types/api";
+import type { UpdateTaskTagsResponse, ApiError } from "@/types/api";
 
-// PUT /api/cards/[cardId]/tags - Update card tags (replace all tags)
+// PUT /api/tasks/[taskId]/tags - Update task tags (replace all tags)
 export const PUT = withAuth(
   async ({
     request,
     context,
-  }): Promise<NextResponse<UpdateCardTagsResponse | ApiError>> => {
+  }): Promise<NextResponse<UpdateTaskTagsResponse | ApiError>> => {
     try {
       const params = await context?.params;
-      const cardId = params?.cardId;
-      if (!cardId) {
+      const taskId = params?.taskId;
+      if (!taskId) {
         return NextResponse.json<ApiError>(
-          { error: "Card ID is required" },
+          { error: "Task ID is required" },
           { status: 400 }
         );
       }
@@ -33,9 +33,9 @@ export const PUT = withAuth(
 
       // Start a transaction by deleting existing tags and inserting new ones
       const { error: deleteError } = await supabase
-        .from("card_tags")
+        .from("task_tags")
         .delete()
-        .eq("card_id", cardId);
+        .eq("task_id", taskId);
 
       if (deleteError) {
         return NextResponse.json<ApiError>(
@@ -46,14 +46,14 @@ export const PUT = withAuth(
 
       // Insert new tag relationships if any tags are provided
       if (tagIds.length > 0) {
-        const cardTagInserts = tagIds.map((tagId: string) => ({
-          card_id: cardId,
+        const taskTagInserts = tagIds.map((tagId: string) => ({
+          task_id: taskId,
           tag_id: tagId,
         }));
 
         const { error: insertError } = await supabase
-          .from("card_tags")
-          .insert(cardTagInserts);
+          .from("task_tags")
+          .insert(taskTagInserts);
 
         if (insertError) {
           return NextResponse.json<ApiError>(
@@ -63,9 +63,9 @@ export const PUT = withAuth(
         }
       }
 
-      return NextResponse.json<UpdateCardTagsResponse>({ success: true });
+      return NextResponse.json<UpdateTaskTagsResponse>({ success: true });
     } catch (error: unknown) {
-      console.error("Error updating card tags:", error);
+      console.error("Error updating task tags:", error);
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error occurred";
       return NextResponse.json<ApiError>(

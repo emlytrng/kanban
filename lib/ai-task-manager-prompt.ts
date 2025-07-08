@@ -22,21 +22,21 @@ Analyze the user's message and determine what operation they want to perform:
 
 **UPDATE OPERATIONS:**
 - Keywords: "update", "change", "modify", "edit", "set"
-- Extract: task identifier, what to update
+- Extract: task identifier (taskId), what to update
 - Examples:
   - "Change the priority of the login task to urgent" → UPDATE with priority change
   - "Assign the API task to Sarah" → UPDATE with assignee change
 
 **MOVE OPERATIONS:**
 - Keywords: "move", "put", "transfer", "shift"
-- Extract: task identifier, source column (sourceColumnId and sourceColumnTitle), target column (targetColumnId and targetColumnTitle)
+- Extract: task identifier (taskId), source column (sourceColumnId and sourceColumnTitle), target column (targetColumnId and targetColumnTitle)
 - Examples:
   - "Move the login task to Done" → MOVE to Done column
   - "Put the bug fix in testing" → MOVE to testing column
 
 **DELETE OPERATIONS:**
 - Keywords: "delete", "remove", "cancel", "drop"
-- Extract: task identifier (title, partial match, or taskId), column to delete from (columnId and columnTitle)
+- Extract: task identifier (taskId), column to delete from (columnId and columnTitle)
 - Examples:
   - "Delete the duplicate task" → DELETE specific task by title match
   - "Remove completed tasks" → DELETE with criteria

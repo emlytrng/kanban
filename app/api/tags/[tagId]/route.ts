@@ -115,7 +115,7 @@ export const DELETE = withAuth(
 
       const supabase = await createSupabaseClient();
 
-      // Delete the tag (this will also delete all card_tags relationships due to CASCADE)
+      // Delete the tag (this will also delete all task_tags relationships due to CASCADE)
       const { error: deleteError } = await supabase
         .from("tags")
         .delete()

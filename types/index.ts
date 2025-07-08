@@ -20,7 +20,7 @@ export interface Tag {
   updatedAt: string;
 }
 
-export interface Card {
+export interface Task {
   id: string;
   title: string;
   description?: string;
@@ -33,7 +33,7 @@ export interface Card {
 export interface Column {
   id: string;
   title: string;
-  cards: Card[];
+  tasks: Task[];
   createdAt: string;
   updatedAt: string;
 }

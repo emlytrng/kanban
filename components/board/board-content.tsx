@@ -8,7 +8,7 @@ import Column from "./column";
 
 export default function BoardContent() {
   const columns = useColumns();
-  const { moveCard, moveColumn } = useKanbanActions();
+  const { moveTask, moveColumn } = useKanbanActions();
 
   const handleDragEnd = (result: DropResult) => {
     const { destination, source, draggableId, type } = result;
@@ -28,7 +28,7 @@ export default function BoardContent() {
       return;
     }
 
-    moveCard(
+    moveTask(
       draggableId,
       source.droppableId,
       destination.droppableId,

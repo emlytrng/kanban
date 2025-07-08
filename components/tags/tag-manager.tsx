@@ -83,7 +83,7 @@ export default function TagManager({ boardId }: TagManagerProps) {
   const handleDeleteTag = async (tagId: string) => {
     if (
       confirm(
-        "Are you sure you want to delete this tag? It will be removed from all cards."
+        "Are you sure you want to delete this tag? It will be removed from all tasks."
       )
     ) {
       clearError();
@@ -209,7 +209,7 @@ export default function TagManager({ boardId }: TagManagerProps) {
           <div className="text-center py-8 text-muted-foreground">
             <p>No tags created yet.</p>
             <p className="text-sm">
-              Create your first tag to organize your cards.
+              Create your first tag to organize your tasks.
             </p>
           </div>
         ) : (

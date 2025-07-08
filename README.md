@@ -4,9 +4,9 @@ A modern kanban board application built with Next.js, featuring AI-powered assis
 
 ## Features
 
-- **Drag & Drop Interface**: Intuitive card and column management
+- **Drag & Drop Interface**: Intuitive task and column management
 - **AI Task Assistant**: Natural language task CRUD actions
-- **Tag System**: Organize cards with customizable colored tags
+- **Tag System**: Organize tasks with customizable colored tags
 - **Multi-Board Support**: Create and manage multiple project boards
 - **Authentication**: Secured user authentication via Auth0
 - **Real-time Updates**: Optimistic UI updates with server synchronization
@@ -84,12 +84,12 @@ Use natural language to manage tasks:
 
 ### Drag & Drop
 
-- Reorder cards within columns
-- Move cards between columns
+- Reorder tasks within columns
+- Move tasks between columns
 - Reorder columns on the board
 
 ### Tag System
 
 - Create custom colored tags
-- Assign multiple tags to cards
+- Assign multiple tags to tasks
 - Filter and organize by tags

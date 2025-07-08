@@ -2,14 +2,14 @@ import { v4 as uuidv4 } from "uuid";
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 
-import type { Board, Column, Card } from "@/types";
+import type { Board, Column, Task } from "@/types";
 import type {
   GetBoardsResponse,
   CreateBoardResponse,
   GetBoardResponse,
   CreateColumnResponse,
-  CreateCardResponse,
-  UpdateCardResponse,
+  CreateTaskResponse,
+  UpdateTaskResponse,
 } from "@/types/api";
 
 const getErrorMessage = (error: unknown): string => {
@@ -53,24 +53,24 @@ interface KanbanState {
       destinationIndex: number
     ) => Promise<void>;
 
-    // Card actions
-    addCard: (columnId: string, title: string) => Promise<void>;
-    updateCard: (
-      cardId: string,
-      updates: Partial<Card>,
+    // Task actions
+    addTask: (columnId: string, title: string) => Promise<void>;
+    updateTask: (
+      taskId: string,
+      updates: Partial<Task>,
       columnId?: string
     ) => Promise<void>;
-    deleteCard: (columnId: string, cardId: string) => Promise<void>;
-    moveCard: (
-      cardId: string,
+    deleteTask: (columnId: string, taskId: string) => Promise<void>;
+    moveTask: (
+      taskId: string,
       sourceColumnId: string,
       destinationColumnId: string,
       sourceIndex: number,
       destinationIndex: number,
       skipOptimistic?: boolean
     ) => Promise<void>;
-    findTaskById: (taskId: string) => { task: Card; columnId: string } | null;
-    updateCardTags: (cardId: string, tagIds: string[]) => Promise<boolean>;
+    findTaskById: (taskId: string) => { task: Task; columnId: string } | null;
+    updateTaskTags: (taskId: string, tagIds: string[]) => Promise<boolean>;
   };
 }
 
@@ -273,7 +273,7 @@ export const useKanbanStore = create(
         const newColumn: Column = {
           id: tempId,
           title: title.trim(),
-          cards: [],
+          tasks: [],
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         };
@@ -413,18 +413,18 @@ export const useKanbanStore = create(
         }
       },
 
-      // Card actions
-      addCard: async (columnId: string, title: string) => {
+      // Task actions
+      addTask: async (columnId: string, title: string) => {
         const column = get().columns.find((col) => col.id === columnId);
         if (!column) {
           set({ error: "Column not found" });
           return;
         }
 
-        const position = column.cards.length;
+        const position = column.tasks.length;
         const tempId = uuidv4();
 
-        const newCard: Card = {
+        const newTask: Task = {
           id: tempId,
           title: title.trim(),
           description: "",
@@ -440,7 +440,7 @@ export const useKanbanStore = create(
             if (col.id === columnId) {
               return {
                 ...col,
-                cards: [...col.cards, newCard],
+                tasks: [...col.tasks, newTask],
               };
             }
             return col;
@@ -449,7 +449,7 @@ export const useKanbanStore = create(
         }));
 
         try {
-          const response = await fetch("/api/cards", {
+          const response = await fetch("/api/tasks", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -463,19 +463,19 @@ export const useKanbanStore = create(
 
           if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.error || "Failed to add card");
+            throw new Error(errorData.error || "Failed to add task");
           }
 
-          const data: CreateCardResponse = await response.json();
+          const data: CreateTaskResponse = await response.json();
 
-          // Update with the actual card ID from the server
+          // Update with the actual task ID from the server
           set((state) => ({
             columns: state.columns.map((col) => {
               if (col.id === columnId) {
                 return {
                   ...col,
-                  cards: col.cards.map((c) =>
-                    c.id === tempId ? { ...c, id: data.card.id } : c
+                  tasks: col.tasks.map((c) =>
+                    c.id === tempId ? { ...c, id: data.task.id } : c
                   ),
                 };
               }
@@ -484,7 +484,7 @@ export const useKanbanStore = create(
           }));
         } catch (error) {
           const errorMessage = getErrorMessage(error);
-          console.error("Error adding card:", error);
+          console.error("Error adding task:", error);
 
           // Rollback on error
           set((state) => ({
@@ -492,45 +492,45 @@ export const useKanbanStore = create(
               if (col.id === columnId) {
                 return {
                   ...col,
-                  cards: col.cards.filter((c) => c.id !== tempId),
+                  tasks: col.tasks.filter((c) => c.id !== tempId),
                 };
               }
               return col;
             }),
-            error: "Failed to add card: " + errorMessage,
+            error: "Failed to add task: " + errorMessage,
           }));
         }
       },
 
-      updateCard: async (
-        cardId: string,
-        updates: Partial<Card>,
+      updateTask: async (
+        taskId: string,
+        updates: Partial<Task>,
         columnId?: string
       ) => {
         const columns = get().columns;
 
-        // Find the column and card
+        // Find the column and task
         let targetColumnId = columnId;
-        let originalCard: Card | undefined;
+        let originalTask: Task | undefined;
 
         if (!targetColumnId) {
           // If columnId is not provided, find it by searching all columns
           for (const col of columns) {
-            const card = col.cards.find((c) => c.id === cardId);
-            if (card) {
+            const task = col.tasks.find((c) => c.id === taskId);
+            if (task) {
               targetColumnId = col.id;
-              originalCard = card;
+              originalTask = task;
               break;
             }
           }
         } else {
-          // If columnId is provided, find the card in that column
+          // If columnId is provided, find the task in that column
           const column = columns.find((col) => col.id === targetColumnId);
-          originalCard = column?.cards.find((card) => card.id === cardId);
+          originalTask = column?.tasks.find((task) => task.id === taskId);
         }
 
-        if (!targetColumnId || !originalCard) {
-          set({ error: "Card or column not found" });
+        if (!targetColumnId || !originalTask) {
+          set({ error: "Task or column not found" });
           return;
         }
 
@@ -540,15 +540,15 @@ export const useKanbanStore = create(
             if (col.id === targetColumnId) {
               return {
                 ...col,
-                cards: col.cards.map((card) => {
-                  if (card.id === cardId) {
+                tasks: col.tasks.map((task) => {
+                  if (task.id === taskId) {
                     return {
-                      ...card,
+                      ...task,
                       ...updates,
                       updatedAt: new Date().toISOString(),
                     };
                   }
-                  return card;
+                  return task;
                 }),
               };
             }
@@ -558,7 +558,7 @@ export const useKanbanStore = create(
         }));
 
         try {
-          const response = await fetch(`/api/cards/${cardId}`, {
+          const response = await fetch(`/api/tasks/${taskId}`, {
             method: "PATCH",
             headers: {
               "Content-Type": "application/json",
@@ -571,10 +571,10 @@ export const useKanbanStore = create(
 
           if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.error || "Failed to update card");
+            throw new Error(errorData.error || "Failed to update task");
           }
 
-          const data: UpdateCardResponse = await response.json();
+          const data: UpdateTaskResponse = await response.json();
 
           // Update with server response timestamp
           set((state) => ({
@@ -582,14 +582,14 @@ export const useKanbanStore = create(
               if (col.id === targetColumnId) {
                 return {
                   ...col,
-                  cards: col.cards.map((card) => {
-                    if (card.id === cardId) {
+                  tasks: col.tasks.map((task) => {
+                    if (task.id === taskId) {
                       return {
-                        ...card,
-                        updatedAt: data.card.updatedAt,
+                        ...task,
+                        updatedAt: data.task.updatedAt,
                       };
                     }
-                    return card;
+                    return task;
                   }),
                 };
               }
@@ -598,7 +598,7 @@ export const useKanbanStore = create(
           }));
         } catch (error) {
           const errorMessage = getErrorMessage(error);
-          console.error("Error updating card:", error);
+          console.error("Error updating task:", error);
 
           // Rollback on error
           set((state) => ({
@@ -606,35 +606,35 @@ export const useKanbanStore = create(
               if (col.id === targetColumnId) {
                 return {
                   ...col,
-                  cards: col.cards.map((card) => {
-                    if (card.id === cardId) {
-                      return originalCard!;
+                  tasks: col.tasks.map((task) => {
+                    if (task.id === taskId) {
+                      return originalTask!;
                     }
-                    return card;
+                    return task;
                   }),
                 };
               }
               return col;
             }),
-            error: "Failed to update card: " + errorMessage,
+            error: "Failed to update task: " + errorMessage,
           }));
         }
       },
 
-      deleteCard: async (columnId: string, cardId: string) => {
+      deleteTask: async (columnId: string, taskId: string) => {
         const column = get().columns.find((col) => col.id === columnId);
         if (!column) {
           set({ error: "Column not found" });
           return;
         }
 
-        const cardIndex = column.cards.findIndex((card) => card.id === cardId);
-        if (cardIndex === -1) {
-          set({ error: "Card not found" });
+        const taskIndex = column.tasks.findIndex((task) => task.id === taskId);
+        if (taskIndex === -1) {
+          set({ error: "Task not found" });
           return;
         }
 
-        const deletedCard = column.cards[cardIndex];
+        const deletedTask = column.tasks[taskIndex];
 
         // Optimistic update
         set((state) => ({
@@ -642,7 +642,7 @@ export const useKanbanStore = create(
             if (col.id === columnId) {
               return {
                 ...col,
-                cards: col.cards.filter((card) => card.id !== cardId),
+                tasks: col.tasks.filter((task) => task.id !== taskId),
               };
             }
             return col;
@@ -651,38 +651,38 @@ export const useKanbanStore = create(
         }));
 
         try {
-          const response = await fetch(`/api/cards/${cardId}`, {
+          const response = await fetch(`/api/tasks/${taskId}`, {
             method: "DELETE",
           });
 
           if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.error || "Failed to delete card");
+            throw new Error(errorData.error || "Failed to delete task");
           }
         } catch (error) {
           const errorMessage = getErrorMessage(error);
-          console.error("Error deleting card:", error);
+          console.error("Error deleting task:", error);
 
-          // Rollback on error - restore card at its original position
+          // Rollback on error - restore task at its original position
           set((state) => ({
             columns: state.columns.map((col) => {
               if (col.id === columnId) {
-                const newCards = [...col.cards];
-                newCards.splice(cardIndex, 0, deletedCard);
+                const newTasks = [...col.tasks];
+                newTasks.splice(taskIndex, 0, deletedTask);
                 return {
                   ...col,
-                  cards: newCards,
+                  tasks: newTasks,
                 };
               }
               return col;
             }),
-            error: "Failed to delete card: " + errorMessage,
+            error: "Failed to delete task: " + errorMessage,
           }));
         }
       },
 
-      moveCard: async (
-        cardId: string,
+      moveTask: async (
+        taskId: string,
         sourceColumnId: string,
         destinationColumnId: string,
         sourceIndex: number,
@@ -704,24 +704,24 @@ export const useKanbanStore = create(
               return state;
 
             const sourceColumn = newColumns[sourceColumnIndex];
-            const card = sourceColumn.cards.find((c) => c.id === cardId);
+            const task = sourceColumn.tasks.find((c) => c.id === taskId);
 
-            if (!card) return state;
+            if (!task) return state;
 
             // Remove from source
             newColumns[sourceColumnIndex] = {
               ...sourceColumn,
-              cards: sourceColumn.cards.filter((c) => c.id !== cardId),
+              tasks: sourceColumn.tasks.filter((c) => c.id !== taskId),
             };
 
             // Add to destination
             const destColumn = newColumns[destColumnIndex];
-            const newDestCards = [...destColumn.cards];
-            newDestCards.splice(destinationIndex, 0, card);
+            const newDestTasks = [...destColumn.tasks];
+            newDestTasks.splice(destinationIndex, 0, task);
 
             newColumns[destColumnIndex] = {
               ...destColumn,
-              cards: newDestCards,
+              tasks: newDestTasks,
             };
 
             return { columns: newColumns };
@@ -738,9 +738,9 @@ export const useKanbanStore = create(
           return;
         }
 
-        const card = sourceColumn.cards.find((c) => c.id === cardId);
-        if (!card) {
-          set({ error: "Card not found" });
+        const task = sourceColumn.tasks.find((c) => c.id === taskId);
+        if (!task) {
+          set({ error: "Task not found" });
           return;
         }
 
@@ -761,36 +761,36 @@ export const useKanbanStore = create(
 
           // Remove from source column
           const sourceColumn = newColumns[sourceColumnIndex];
-          const updatedSourceCards = sourceColumn.cards.filter(
-            (c) => c.id !== cardId
+          const updatedSourceTasks = sourceColumn.tasks.filter(
+            (c) => c.id !== taskId
           );
 
           newColumns[sourceColumnIndex] = {
             ...sourceColumn,
-            cards: updatedSourceCards,
+            tasks: updatedSourceTasks,
           };
 
           // Add to destination column
           const destColumn = newColumns[destColumnIndex];
-          const updatedDestCards = [...destColumn.cards];
-          updatedDestCards.splice(destinationIndex, 0, card);
+          const updatedDestTasks = [...destColumn.tasks];
+          updatedDestTasks.splice(destinationIndex, 0, task);
 
           newColumns[destColumnIndex] = {
             ...destColumn,
-            cards: updatedDestCards,
+            tasks: updatedDestTasks,
           };
 
           return { columns: newColumns, error: null };
         });
 
         try {
-          const response = await fetch("/api/cards/move", {
+          const response = await fetch("/api/tasks/move", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              cardId,
+              taskId,
               sourceColumnId,
               destinationColumnId,
               destinationIndex,
@@ -799,16 +799,16 @@ export const useKanbanStore = create(
 
           if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.error || "Failed to move card");
+            throw new Error(errorData.error || "Failed to move task");
           }
         } catch (error) {
           const errorMessage = getErrorMessage(error);
-          console.error("Error moving card:", error);
+          console.error("Error moving task:", error);
 
           // Rollback to original state on error
           set({
             columns: originalColumns,
-            error: "Failed to move card: " + errorMessage,
+            error: "Failed to move task: " + errorMessage,
           });
         }
       },
@@ -816,7 +816,7 @@ export const useKanbanStore = create(
       findTaskById: (taskId: string) => {
         const state = get();
         for (const column of state.columns) {
-          const task = column.cards.find((card) => card.id === taskId);
+          const task = column.tasks.find((task) => task.id === taskId);
           if (task) {
             return { task, columnId: column.id };
           }
@@ -824,26 +824,26 @@ export const useKanbanStore = create(
         return null;
       },
 
-      updateCardTags: async (cardId: string, tagIds: string[]) => {
+      updateTaskTags: async (taskId: string, tagIds: string[]) => {
         const { useTagStore } = await import("./tag-store");
         const columns = get().columns;
         const tags = useTagStore.getState().tags;
 
-        // Find the card and its column
+        // Find the task and its column
         let targetColumnId: string | null = null;
-        let originalCard: Card | null = null;
+        let originalTask: Task | null = null;
 
         for (const col of columns) {
-          const card = col.cards.find((c) => c.id === cardId);
-          if (card) {
+          const task = col.tasks.find((c) => c.id === taskId);
+          if (task) {
             targetColumnId = col.id;
-            originalCard = card;
+            originalTask = task;
             break;
           }
         }
 
-        if (!targetColumnId || !originalCard) {
-          set({ error: "Card not found" });
+        if (!targetColumnId || !originalTask) {
+          set({ error: "Task not found" });
           return false;
         }
 
@@ -855,15 +855,15 @@ export const useKanbanStore = create(
             if (col.id === targetColumnId) {
               return {
                 ...col,
-                cards: col.cards.map((card) => {
-                  if (card.id === cardId) {
+                tasks: col.tasks.map((task) => {
+                  if (task.id === taskId) {
                     return {
-                      ...card,
+                      ...task,
                       tags: selectedTags,
                       updatedAt: new Date().toISOString(),
                     };
                   }
-                  return card;
+                  return task;
                 }),
               };
             }
@@ -873,7 +873,7 @@ export const useKanbanStore = create(
         }));
 
         try {
-          const response = await fetch(`/api/cards/${cardId}/tags`, {
+          const response = await fetch(`/api/tasks/${taskId}/tags`, {
             method: "PUT",
             headers: {
               "Content-Type": "application/json",
@@ -883,42 +883,37 @@ export const useKanbanStore = create(
 
           if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.error || "Failed to update card tags");
+            throw new Error(errorData.error || "Failed to update task tags");
           }
 
           const data = await response.json();
-
-          // Check if the response has the expected structure
-          if (data.success && data.card && data.card.tags) {
-            // Update with server response
+          if (data.success && data.task && data.task.tags) {
             set((state) => ({
               columns: state.columns.map((col) => {
                 if (col.id === targetColumnId) {
                   return {
                     ...col,
-                    cards: col.cards.map((card) => {
-                      if (card.id === cardId) {
+                    tasks: col.tasks.map((task) => {
+                      if (task.id === taskId) {
                         return {
-                          ...card,
-                          tags: data.card.tags,
-                          updatedAt: data.card.updatedAt,
+                          ...task,
+                          tags: data.task.tags,
+                          updatedAt: data.task.updatedAt,
                         };
                       }
-                      return card;
+                      return task;
                     }),
                   };
                 }
                 return col;
               }),
             }));
-          } else {
-            console.warn("Unexpected API response structure:", data);
           }
 
           return true;
         } catch (error) {
           const errorMessage = getErrorMessage(error);
-          console.error("Error updating card tags:", error);
+          console.error("Error updating task tags:", error);
 
           // Rollback on error
           set((state) => ({
@@ -926,17 +921,17 @@ export const useKanbanStore = create(
               if (col.id === targetColumnId) {
                 return {
                   ...col,
-                  cards: col.cards.map((card) => {
-                    if (card.id === cardId) {
-                      return originalCard!;
+                  tasks: col.tasks.map((task) => {
+                    if (task.id === taskId) {
+                      return originalTask!;
                     }
-                    return card;
+                    return task;
                   }),
                 };
               }
               return col;
             }),
-            error: "Failed to update card tags: " + errorMessage,
+            error: "Failed to update task tags: " + errorMessage,
           }));
 
           return false;

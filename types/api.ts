@@ -1,6 +1,6 @@
 import type { TaskOperationResponse } from "@/schemas/task-operation-response";
 
-import type { Board, Card, Column, Tag } from "./index";
+import type { Board, Task, Column, Tag } from "./index";
 
 // Base API response types
 export type ApiResponse<T = unknown> = {
@@ -31,20 +31,20 @@ export type GetBoardResponse = {
   columns: Column[];
 };
 
-// Card API responses
-export type CreateCardResponse = {
-  card: Card;
+// Task API responses
+export type CreateTaskResponse = {
+  task: Task;
 };
 
-export type UpdateCardResponse = {
-  card: Card;
+export type UpdateTaskResponse = {
+  task: Task;
 };
 
-export type DeleteCardResponse = {
+export type DeleteTaskResponse = {
   success: true;
 };
 
-export type MoveCardResponse = {
+export type MoveTaskResponse = {
   success: true;
 };
 
@@ -81,6 +81,6 @@ export interface DeleteTagResponse {
   success: boolean;
 }
 
-export interface UpdateCardTagsResponse {
+export interface UpdateTaskTagsResponse {
   success: boolean;
 }

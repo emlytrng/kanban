@@ -2,11 +2,11 @@ import { NextResponse } from "next/server";
 
 import { withAuth } from "@/lib/auth-utils";
 import { createSupabaseClient } from "@/lib/supabase";
-import type { CreateCardResponse, ApiError } from "@/types/api";
+import type { CreateTaskResponse, ApiError } from "@/types/api";
 
-// POST /api/cards - Create a new card
+// POST /api/tasks - Create a new task
 export const POST = withAuth(
-  async ({ request }): Promise<NextResponse<CreateCardResponse | ApiError>> => {
+  async ({ request }): Promise<NextResponse<CreateTaskResponse | ApiError>> => {
     try {
       // Get request body
       const {
@@ -24,9 +24,9 @@ export const POST = withAuth(
 
       const supabase = await createSupabaseClient();
 
-      // Create a new card
-      const { data: newCard, error: cardError } = await supabase
-        .from("cards")
+      // Create a new task
+      const { data: newTask, error: taskError } = await supabase
+        .from("tasks")
         .insert({
           column_id: columnId,
           title,
@@ -36,25 +36,25 @@ export const POST = withAuth(
         .select()
         .single();
 
-      if (cardError) {
+      if (taskError) {
         return NextResponse.json<ApiError>(
-          { error: cardError.message },
+          { error: taskError.message },
           { status: 500 }
         );
       }
 
-      return NextResponse.json<CreateCardResponse>({
-        card: {
-          id: newCard.id,
-          title: newCard.title,
-          description: newCard.description || "",
+      return NextResponse.json<CreateTaskResponse>({
+        task: {
+          id: newTask.id,
+          title: newTask.title,
+          description: newTask.description || "",
           assignee: "You", // Default assignee
-          createdAt: newCard.created_at,
-          updatedAt: newCard.updated_at,
+          createdAt: newTask.created_at,
+          updatedAt: newTask.updated_at,
         },
       });
     } catch (error: unknown) {
-      console.error("Error creating card:", error);
+      console.error("Error creating task:", error);
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error occurred";
       return NextResponse.json<ApiError>(

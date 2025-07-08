@@ -90,7 +90,7 @@ export default function DeleteBoardModal({
             <strong className="text-foreground">
               &quot;{currentBoard.title}&quot;
             </strong>{" "}
-            and all of its columns and cards.
+            and all of its columns and tasks.
           </p>
 
           <div className="bg-destructive/5 border border-destructive/20 rounded-md p-3 mb-4">
@@ -100,7 +100,7 @@ export default function DeleteBoardModal({
             <ul className="text-sm text-destructive/80 space-y-1">
               <li>• The board and all its settings</li>
               <li>• All columns in this board</li>
-              <li>• All cards and their content</li>
+              <li>• All tasks and their content</li>
               <li>• All associated data</li>
             </ul>
           </div>

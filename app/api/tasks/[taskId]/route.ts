@@ -3,23 +3,23 @@ import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/auth-utils";
 import { createSupabaseClient } from "@/lib/supabase";
 import type {
-  UpdateCardResponse,
-  DeleteCardResponse,
+  UpdateTaskResponse,
+  DeleteTaskResponse,
   ApiError,
 } from "@/types/api";
 
-// PATCH /api/cards/[cardId] - Update a card
+// PATCH /api/tasks/[taskId] - Update a task
 export const PATCH = withAuth(
   async ({
     request,
     context,
-  }): Promise<NextResponse<UpdateCardResponse | ApiError>> => {
+  }): Promise<NextResponse<UpdateTaskResponse | ApiError>> => {
     try {
       const params = await context?.params;
-      const cardId = params?.cardId;
-      if (!cardId) {
+      const taskId = params?.taskId;
+      if (!taskId) {
         return NextResponse.json<ApiError>(
-          { error: "Card ID is required" },
+          { error: "Task ID is required" },
           { status: 400 }
         );
       }
@@ -27,7 +27,7 @@ export const PATCH = withAuth(
       const updates = await request.json();
       const { title, description, column_id, position } = updates;
 
-      // Update the card
+      // Update the task
       const updateData: Record<string, unknown> = {
         updated_at: new Date().toISOString(),
       };
@@ -39,10 +39,10 @@ export const PATCH = withAuth(
 
       const supabase = await createSupabaseClient();
 
-      const { data: updatedCard, error: updateError } = await supabase
-        .from("cards")
+      const { data: updatedTask, error: updateError } = await supabase
+        .from("tasks")
         .update(updateData)
-        .eq("id", cardId)
+        .eq("id", taskId)
         .select()
         .single();
 
@@ -53,17 +53,17 @@ export const PATCH = withAuth(
         );
       }
 
-      return NextResponse.json<UpdateCardResponse>({
-        card: {
-          id: updatedCard.id,
-          title: updatedCard.title,
-          description: updatedCard.description || "",
-          createdAt: updatedCard.created_at,
-          updatedAt: updatedCard.updated_at,
+      return NextResponse.json<UpdateTaskResponse>({
+        task: {
+          id: updatedTask.id,
+          title: updatedTask.title,
+          description: updatedTask.description || "",
+          createdAt: updatedTask.created_at,
+          updatedAt: updatedTask.updated_at,
         },
       });
     } catch (error: unknown) {
-      console.error("Error updating card:", error);
+      console.error("Error updating task:", error);
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error occurred";
       return NextResponse.json<ApiError>(
@@ -74,26 +74,26 @@ export const PATCH = withAuth(
   }
 );
 
-// DELETE /api/cards/[cardId] - Delete a card
+// DELETE /api/tasks/[taskId] - Delete a task
 export const DELETE = withAuth(
-  async ({ context }): Promise<NextResponse<DeleteCardResponse | ApiError>> => {
+  async ({ context }): Promise<NextResponse<DeleteTaskResponse | ApiError>> => {
     try {
       const params = await context?.params;
-      const cardId = params?.cardId;
-      if (!cardId) {
+      const taskId = params?.taskId;
+      if (!taskId) {
         return NextResponse.json<ApiError>(
-          { error: "Card ID is required" },
+          { error: "Task ID is required" },
           { status: 400 }
         );
       }
 
       const supabase = await createSupabaseClient();
 
-      // Delete the card
+      // Delete the task
       const { error: deleteError } = await supabase
-        .from("cards")
+        .from("tasks")
         .delete()
-        .eq("id", cardId);
+        .eq("id", taskId);
 
       if (deleteError) {
         return NextResponse.json<ApiError>(
@@ -102,9 +102,9 @@ export const DELETE = withAuth(
         );
       }
 
-      return NextResponse.json<DeleteCardResponse>({ success: true });
+      return NextResponse.json<DeleteTaskResponse>({ success: true });
     } catch (error: unknown) {
-      console.error("Error deleting card:", error);
+      console.error("Error deleting task:", error);
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error occurred";
       return NextResponse.json<ApiError>(

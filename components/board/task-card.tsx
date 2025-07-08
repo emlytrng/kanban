@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Draggable } from "@hello-pangea/dnd";
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 
-import CardTagSelector from "@/components/board/card-tag-selector";
+import TaskTagSelector from "@/components/board/task-tag-selector";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -15,26 +15,26 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
 import { useKanbanActions } from "@/lib/store";
-import type { Card } from "@/types";
+import type { Task } from "@/types";
 
 interface TaskCardProps {
-  card: Card;
+  task: Task;
   index: number;
   columnId: string;
 }
 
-export default function TaskCard({ card, index, columnId }: TaskCardProps) {
-  const { updateCard, deleteCard } = useKanbanActions();
+export default function TaskCard({ task, index, columnId }: TaskCardProps) {
+  const { updateTask, deleteTask } = useKanbanActions();
   const [isEditing, setIsEditing] = useState(false);
-  const [editedTitle, setEditedTitle] = useState(card.title);
+  const [editedTitle, setEditedTitle] = useState(task.title);
   const [editedDescription, setEditedDescription] = useState(
-    card.description || ""
+    task.description || ""
   );
 
   const handleSaveEdit = () => {
     if (editedTitle.trim()) {
-      updateCard(
-        card.id,
+      updateTask(
+        task.id,
         {
           title: editedTitle.trim(),
           description: editedDescription.trim(),
@@ -45,12 +45,12 @@ export default function TaskCard({ card, index, columnId }: TaskCardProps) {
     }
   };
 
-  const handleDeleteCard = () => {
-    deleteCard(columnId, card.id);
+  const handleDeleteTask = () => {
+    deleteTask(columnId, task.id);
   };
 
   return (
-    <Draggable draggableId={card.id} index={index}>
+    <Draggable draggableId={task.id} index={index}>
       {(provided, snapshot) => (
         <div
           ref={provided.innerRef}
@@ -74,9 +74,9 @@ export default function TaskCard({ card, index, columnId }: TaskCardProps) {
                 className="resize-none text-sm bg-input border-border text-card-foreground placeholder:text-muted-foreground focus-visible:ring-ring"
                 rows={3}
               />
-              <CardTagSelector
-                cardId={card.id}
-                selectedTags={card.tags || []}
+              <TaskTagSelector
+                taskId={task.id}
+                selectedTags={task.tags || []}
               />
               <div className="flex gap-2">
                 <Button
@@ -89,8 +89,8 @@ export default function TaskCard({ card, index, columnId }: TaskCardProps) {
                 <Button
                   onClick={() => {
                     setIsEditing(false);
-                    setEditedTitle(card.title);
-                    setEditedDescription(card.description || "");
+                    setEditedTitle(task.title);
+                    setEditedDescription(task.description || "");
                   }}
                   variant="ghost"
                   size="sm"
@@ -104,7 +104,7 @@ export default function TaskCard({ card, index, columnId }: TaskCardProps) {
             <div className="p-1">
               <div className="flex justify-between items-start mb-2 gap-2">
                 <h4 className="font-medium text-card-foreground leading-tight">
-                  {card.title}
+                  {task.title}
                 </h4>
                 {!snapshot.isDragging && (
                   <DropdownMenu>
@@ -126,29 +126,29 @@ export default function TaskCard({ card, index, columnId }: TaskCardProps) {
                         className="hover:bg-accent focus:bg-accent text-popover-foreground"
                       >
                         <Pencil className="h-4 w-4 mr-2" />
-                        Edit Card
+                        Edit Task
                       </DropdownMenuItem>
                       <DropdownMenuItem
-                        onClick={handleDeleteCard}
+                        onClick={handleDeleteTask}
                         className="text-destructive focus:text-destructive hover:bg-accent focus:bg-accent"
                       >
                         <Trash2 className="h-4 w-4 mr-2" />
-                        Delete Card
+                        Delete Task
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 )}
               </div>
 
-              {card.description && (
+              {task.description && (
                 <p className="text-sm text-muted-foreground mb-3 leading-relaxed">
-                  {card.description}
+                  {task.description}
                 </p>
               )}
 
-              {card.tags && card.tags.length > 0 && (
+              {task.tags && task.tags.length > 0 && (
                 <div className="flex flex-wrap gap-1">
-                  {card.tags.map((tag) => (
+                  {task.tags.map((tag) => (
                     <span
                       key={tag.id}
                       className="px-2 py-1 text-xs font-medium rounded-full text-white"

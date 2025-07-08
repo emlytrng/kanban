@@ -63,7 +63,7 @@ export const POST = withAuth(
         column: {
           id: newColumn.id,
           title: newColumn.title,
-          cards: [],
+          tasks: [],
           createdAt: newColumn.created_at,
           updatedAt: newColumn.updated_at,
         },

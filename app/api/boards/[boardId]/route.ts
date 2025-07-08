@@ -5,7 +5,7 @@ import { createSupabaseClient } from "@/lib/supabase";
 import type { GetBoardResponse, ApiError } from "@/types/api";
 
 // Types for joined query result
-interface CardTagJoin {
+interface TaskTagJoin {
   tags: {
     id: string;
     name: string;
@@ -15,26 +15,26 @@ interface CardTagJoin {
   };
 }
 
-interface CardWithTags {
+interface TaskWithTags {
   id: string;
   title: string;
   description?: string;
   position: number;
   created_at: string;
   updated_at: string;
-  card_tags: CardTagJoin[];
+  task_tags: TaskTagJoin[];
 }
 
-interface ColumnWithCardsAndTags {
+interface ColumnWithTasksAndTags {
   id: string;
   title: string;
   position: number;
   created_at: string;
   updated_at: string;
-  cards: CardWithTags[];
+  tasks: TaskWithTags[];
 }
 
-// GET /api/boards/[boardId] - Get a specific board with its columns and cards
+// GET /api/boards/[boardId] - Get a specific board with its columns and tasks
 export const GET = withAuth(async ({ context }) => {
   try {
     const params = await context?.params;
@@ -72,14 +72,14 @@ export const GET = withAuth(async ({ context }) => {
         position,
         created_at,
         updated_at,
-        cards (
+        tasks (
           id,
           title,
           description,
           position,
           created_at,
           updated_at,
-          card_tags (
+          task_tags (
             tags (
               id,
               name,
@@ -101,22 +101,22 @@ export const GET = withAuth(async ({ context }) => {
       );
     }
 
-    const typedColumnsData = columnsData as unknown as ColumnWithCardsAndTags[];
+    const typedColumnsData = columnsData as unknown as ColumnWithTasksAndTags[];
 
     // Transform data to match our app's structure
     const columns = typedColumnsData.map((col) => ({
       id: col.id,
       title: col.title,
-      cards: (col.cards || [])
+      tasks: (col.tasks || [])
         .sort((a, b) => a.position - b.position)
-        .map((card) => ({
-          id: card.id,
-          title: card.title,
-          description: card.description || "",
+        .map((task) => ({
+          id: task.id,
+          title: task.title,
+          description: task.description || "",
           assignee: "You", // Default assignee
-          createdAt: card.created_at,
-          updatedAt: card.updated_at,
-          tags: (card.card_tags || []).map((ct) => ({
+          createdAt: task.created_at,
+          updatedAt: task.updated_at,
+          tags: (task.task_tags || []).map((ct) => ({
             id: ct.tags.id,
             boardId: boardId,
             name: ct.tags.name,
@@ -163,7 +163,7 @@ export const DELETE = withAuth(
 
       const supabase = await createSupabaseClient();
 
-      // Delete the board (this will cascade delete columns and cards due to foreign key constraints)
+      // Delete the board (this will cascade delete columns and tasks due to foreign key constraints)
       const { error: deleteError } = await supabase
         .from("boards")
         .delete()

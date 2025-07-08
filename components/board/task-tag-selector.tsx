@@ -13,21 +13,21 @@ import {
 import { useTags, useKanbanActions } from "@/lib/store";
 import type { Tag } from "@/types";
 
-interface CardTagSelectorProps {
-  cardId: string;
+interface TaskTagSelectorProps {
+  taskId: string;
   selectedTags: Tag[];
   disabled?: boolean;
 }
 
-export default function CardTagSelector({
-  cardId,
+export default function TaskTagSelector({
+  taskId,
   selectedTags,
   disabled = false,
-}: CardTagSelectorProps) {
+}: TaskTagSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const availableTags = useTags();
-  const { updateCardTags } = useKanbanActions();
+  const { updateTaskTags } = useKanbanActions();
   const selectedTagIds = selectedTags.map((tag) => tag.id);
 
   const toggleTag = async (tagId: string) => {
@@ -40,7 +40,7 @@ export default function CardTagSelector({
       newTagIds = [...selectedTagIds, tagId];
     }
 
-    await updateCardTags(cardId, newTagIds);
+    await updateTaskTags(taskId, newTagIds);
   };
 
   return (

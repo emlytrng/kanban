@@ -55,7 +55,7 @@ export interface Database {
           updated_at?: string;
         };
       };
-      cards: {
+      tasks: {
         Row: {
           id: string;
           column_id: string;
@@ -110,19 +110,19 @@ export interface Database {
           updated_at?: string;
         };
       };
-      card_tags: {
+      task_tags: {
         Row: {
-          card_id: string;
+          task_id: string;
           tag_id: string;
           created_at: string;
         };
         Insert: {
-          card_id: string;
+          task_id: string;
           tag_id: string;
           created_at?: string;
         };
         Update: {
-          card_id?: string;
+          task_id?: string;
           tag_id?: string;
           created_at?: string;
         };

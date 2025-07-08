@@ -2,18 +2,18 @@ import { NextResponse } from "next/server";
 
 import { withAuth } from "@/lib/auth-utils";
 import { createSupabaseClient } from "@/lib/supabase";
-import type { MoveCardResponse, ApiError } from "@/types/api";
+import type { MoveTaskResponse, ApiError } from "@/types/api";
 
-// POST /api/cards/move - Move a card between columns
+// POST /api/tasks/move - Move a task between columns
 export const POST = withAuth(
-  async ({ request }): Promise<NextResponse<MoveCardResponse | ApiError>> => {
+  async ({ request }): Promise<NextResponse<MoveTaskResponse | ApiError>> => {
     try {
       // Get request body
-      const { cardId, sourceColumnId, destinationColumnId, destinationIndex } =
+      const { taskId, sourceColumnId, destinationColumnId, destinationIndex } =
         await request.json();
 
       if (
-        !cardId ||
+        !taskId ||
         !sourceColumnId ||
         !destinationColumnId ||
         destinationIndex === undefined
@@ -21,7 +21,7 @@ export const POST = withAuth(
         return NextResponse.json<ApiError>(
           {
             error:
-              "Card ID, source column ID, destination column ID, and destination index are required",
+              "Task ID, source column ID, destination column ID, and destination index are required",
           },
           { status: 400 }
         );
@@ -31,78 +31,78 @@ export const POST = withAuth(
 
       // Moving within the same column
       if (sourceColumnId === destinationColumnId) {
-        const { data: cards, error: cardsError } = await supabase
-          .from("cards")
+        const { data: tasks, error: tasksError } = await supabase
+          .from("tasks")
           .select("id, position")
           .eq("column_id", sourceColumnId)
           .order("position");
 
-        if (cardsError) {
+        if (tasksError) {
           return NextResponse.json<ApiError>(
-            { error: cardsError.message },
+            { error: tasksError.message },
             { status: 500 }
           );
         }
 
-        if (!cards) {
+        if (!tasks) {
           return NextResponse.json<ApiError>(
-            { error: "Cards not found" },
+            { error: "Tasks not found" },
             { status: 404 }
           );
         }
 
-        // Find current position of the card
-        const currentIndex = cards.findIndex((card) => card.id === cardId);
+        // Find current position of the task
+        const currentIndex = tasks.findIndex((task) => task.id === taskId);
         if (currentIndex === -1) {
           return NextResponse.json<ApiError>(
-            { error: "Card not found" },
+            { error: "Task not found" },
             { status: 404 }
           );
         }
 
-        // Reorder the cards array
-        const reorderedCards = [...cards];
-        const [movedCard] = reorderedCards.splice(currentIndex, 1);
-        reorderedCards.splice(destinationIndex, 0, movedCard);
+        // Reorder the tasks array
+        const reorderedTasks = [...tasks];
+        const [movedTask] = reorderedTasks.splice(currentIndex, 1);
+        reorderedTasks.splice(destinationIndex, 0, movedTask);
 
-        // Update positions for all cards
-        const updates = reorderedCards.map((card, index) =>
+        // Update positions for all tasks
+        const updates = reorderedTasks.map((task, index) =>
           supabase
-            .from("cards")
+            .from("tasks")
             .update({
               position: index,
               updated_at: new Date().toISOString(),
             })
-            .eq("id", card.id)
+            .eq("id", task.id)
         );
 
         await Promise.all(updates);
       } else {
         // Moving between different columns
 
-        // Get all cards in destination column BEFORE moving the card
-        const { data: destCardsBefore, error: destCardsError } = await supabase
-          .from("cards")
+        // Get all tasks in destination column BEFORE moving the task
+        const { data: destTasksBefore, error: destTasksError } = await supabase
+          .from("tasks")
           .select("id, position")
           .eq("column_id", destinationColumnId)
           .order("position");
 
-        if (destCardsError) {
+        if (destTasksError) {
           return NextResponse.json<ApiError>(
-            { error: destCardsError.message },
+            { error: destTasksError.message },
             { status: 500 }
           );
         }
 
-        // Move the card to destination column with a temporary high position
+        // Move the task to destination column with a temporary high position
         const { error: moveError } = await supabase
-          .from("cards")
+          .from("tasks")
           .update({
             column_id: destinationColumnId,
             position: 9999,
             updated_at: new Date().toISOString(),
           })
-          .eq("id", cardId);
+          .eq("id", taskId);
 
         if (moveError) {
           return NextResponse.json<ApiError>(
@@ -112,49 +112,49 @@ export const POST = withAuth(
         }
 
         // Create the new order for destination column
-        const destCards = destCardsBefore || [];
+        const destTasks = destTasksBefore || [];
 
-        // Insert the moved card at the correct position
-        const cardToInsert = { id: cardId, position: 9999 };
-        destCards.splice(destinationIndex, 0, cardToInsert);
+        // Insert the moved task at the correct position
+        const taskToInsert = { id: taskId, position: 9999 };
+        destTasks.splice(destinationIndex, 0, taskToInsert);
 
-        const destCardsUpdates = destCards.map((card, index) =>
+        const destTasksUpdates = destTasks.map((task, index) =>
           supabase
-            .from("cards")
+            .from("tasks")
             .update({
               position: index,
               updated_at: new Date().toISOString(),
             })
-            .eq("id", card.id)
+            .eq("id", task.id)
         );
 
-        await Promise.all(destCardsUpdates);
+        await Promise.all(destTasksUpdates);
 
-        // Reorder source column cards
-        const { data: sourceCards, error: sourceCardsError } = await supabase
-          .from("cards")
+        // Reorder source column tasks
+        const { data: sourceTasks, error: sourceTasksError } = await supabase
+          .from("tasks")
           .select("id, position")
           .eq("column_id", sourceColumnId)
           .order("position");
 
-        if (!sourceCardsError && sourceCards) {
-          const sourceUpdates = sourceCards.map((card, index) =>
+        if (!sourceTasksError && sourceTasks) {
+          const sourceUpdates = sourceTasks.map((task, index) =>
             supabase
-              .from("cards")
+              .from("tasks")
               .update({
                 position: index,
                 updated_at: new Date().toISOString(),
               })
-              .eq("id", card.id)
+              .eq("id", task.id)
           );
 
           await Promise.all(sourceUpdates);
         }
       }
 
-      return NextResponse.json<MoveCardResponse>({ success: true });
+      return NextResponse.json<MoveTaskResponse>({ success: true });
     } catch (error: unknown) {
-      console.error("Error moving card:", error);
+      console.error("Error moving task:", error);
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error occurred";
       return NextResponse.json<ApiError>(

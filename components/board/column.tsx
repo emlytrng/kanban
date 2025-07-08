@@ -23,16 +23,16 @@ interface ColumnProps {
   index: number;
 }
 
-function Column({ column, index }: ColumnProps) {
-  const { addCard, deleteColumn } = useKanbanActions();
-  const [newCardTitle, setNewCardTitle] = useState("");
-  const [isAddingCard, setIsAddingCard] = useState(false);
+function KanbanColumn({ column, index }: ColumnProps) {
+  const { addTask, deleteColumn } = useKanbanActions();
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [isAddingTask, setIsAddingTask] = useState(false);
 
-  const handleAddCard = async () => {
-    if (newCardTitle.trim()) {
-      await addCard(column.id, newCardTitle.trim());
-      setNewCardTitle("");
-      setIsAddingCard(false);
+  const handleAddTask = async () => {
+    if (newTaskTitle.trim()) {
+      await addTask(column.id, newTaskTitle.trim());
+      setNewTaskTitle("");
+      setIsAddingTask(false);
     }
   };
 
@@ -42,15 +42,11 @@ function Column({ column, index }: ColumnProps) {
 
   return (
     <Draggable draggableId={column.id} index={index}>
-      {(provided, snapshot) => (
+      {(provided) => (
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
-          className={`shrink-0 w-80 bg-muted/30 border border-border rounded-lg p-4 transition-colors duration-200 flex flex-col ${
-            snapshot.isDragging
-              ? "shadow-lg ring-2 ring-ring rotate-1"
-              : "shadow-sm"
-          }`}
+          className="shrink-0 w-80 bg-muted/30 border border-border rounded-lg p-4 transition-colors duration-200 flex flex-col"
         >
           <div
             {...provided.dragHandleProps}
@@ -61,7 +57,7 @@ function Column({ column, index }: ColumnProps) {
                 {column.title}
               </h3>
               <span className="text-xs text-muted-foreground bg-background px-2 py-1 rounded-full border border-border">
-                {column.cards.length}
+                {column.tasks.length}
               </span>
             </div>
             <DropdownMenu>
@@ -90,7 +86,7 @@ function Column({ column, index }: ColumnProps) {
           </div>
 
           <div className="flex flex-col flex-1">
-            <Droppable droppableId={column.id} type="card">
+            <Droppable droppableId={column.id} type="task">
               {(provided, snapshot) => (
                 <div
                   ref={provided.innerRef}
@@ -101,11 +97,11 @@ function Column({ column, index }: ColumnProps) {
                       : ""
                   }`}
                 >
-                  {column.cards.map((card, cardIndex) => (
+                  {column.tasks.map((task, taskIndex) => (
                     <TaskCard
-                      key={card.id}
-                      card={card}
-                      index={cardIndex}
+                      key={task.id}
+                      task={task}
+                      index={taskIndex}
                       columnId={column.id}
                     />
                   ))}
@@ -114,29 +110,29 @@ function Column({ column, index }: ColumnProps) {
               )}
             </Droppable>
 
-            {isAddingCard ? (
+            {isAddingTask ? (
               <div className="mt-3">
                 <Input
-                  value={newCardTitle}
-                  onChange={(e) => setNewCardTitle(e.target.value)}
+                  value={newTaskTitle}
+                  onChange={(e) => setNewTaskTitle(e.target.value)}
                   placeholder="Enter task title..."
                   className="mb-2 bg-background border-input text-foreground placeholder:text-muted-foreground focus-visible:ring-ring"
                   autoFocus
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") handleAddCard();
-                    if (e.key === "Escape") setIsAddingCard(false);
+                    if (e.key === "Enter") handleAddTask();
+                    if (e.key === "Escape") setIsAddingTask(false);
                   }}
                 />
                 <div className="flex gap-2">
                   <Button
-                    onClick={handleAddCard}
+                    onClick={handleAddTask}
                     size="sm"
                     className="bg-primary text-primary-foreground hover:bg-primary/90"
                   >
-                    Add Card
+                    Add Task
                   </Button>
                   <Button
-                    onClick={() => setIsAddingCard(false)}
+                    onClick={() => setIsAddingTask(false)}
                     variant="ghost"
                     size="sm"
                     className="text-muted-foreground hover:text-card-foreground hover:bg-accent"
@@ -147,7 +143,7 @@ function Column({ column, index }: ColumnProps) {
               </div>
             ) : (
               <Button
-                onClick={() => setIsAddingCard(true)}
+                onClick={() => setIsAddingTask(true)}
                 variant="ghost"
                 size="sm"
                 className="w-full mt-3 justify-start text-muted-foreground hover:text-foreground hover:bg-muted border border-dashed border-border hover:border-muted-foreground/50 transition-colors"
@@ -163,4 +159,4 @@ function Column({ column, index }: ColumnProps) {
   );
 }
 
-export default Column;
+export default KanbanColumn;
