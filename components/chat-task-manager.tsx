@@ -224,7 +224,7 @@ export default function ChatTaskManager({
             <div className="flex items-center gap-2">
               <Bot className="h-4 w-4 text-primary" />
               <h2 className="text-sm font-semibold text-foreground">
-                AI Task Manager
+                AI Assistant
               </h2>
             </div>
             <Button

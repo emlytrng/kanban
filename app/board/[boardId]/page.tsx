@@ -18,8 +18,6 @@ export default async function BoardPage({ params }: BoardPageProps) {
     redirect("/");
   }
 
-  const userId = session.user["user_id"];
-
   return (
     <main className="h-screen bg-background text-foreground flex flex-col">
       <div className="px-6 py-4 flex-shrink-0">
@@ -34,7 +32,7 @@ export default async function BoardPage({ params }: BoardPageProps) {
           </Button>
         </div>
       </div>
-      <KanbanBoard userId={userId} boardId={boardId} />
+      <KanbanBoard boardId={boardId} />
     </main>
   );
 }

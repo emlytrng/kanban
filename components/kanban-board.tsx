@@ -17,11 +17,10 @@ import BoardHeader from "./board/board-header";
 import ChatTaskManager from "./chat-task-manager";
 
 type KanbanBoardProps = {
-  userId: string;
   boardId: string;
 };
 
-export default function KanbanBoard({ userId, boardId }: KanbanBoardProps) {
+export default function KanbanBoard({ boardId }: KanbanBoardProps) {
   const board = useBoard();
   const isLoading = useIsKanbanLoading();
   const error = useError();
@@ -44,6 +43,14 @@ export default function KanbanBoard({ userId, boardId }: KanbanBoardProps) {
       fetchTags(board.id);
     }
   }, [board, fetchTags]);
+
+  const handleToggleChat = () => {
+    setIsChatOpen(!isChatOpen);
+  };
+
+  const handleCloseChat = () => {
+    setIsChatOpen(false);
+  };
 
   if (isLoading) {
     return (
@@ -69,15 +76,9 @@ export default function KanbanBoard({ userId, boardId }: KanbanBoardProps) {
 
   return (
     <div className="h-screen bg-background text-foreground">
-      <BoardHeader
-        onOpenChatAction={() => setIsChatOpen(true)}
-        userId={userId}
-      />
+      <BoardHeader onToggleChatAction={handleToggleChat} />
       <BoardContent />
-      <ChatTaskManager
-        isOpen={isChatOpen}
-        onCloseAction={() => setIsChatOpen(false)}
-      />
+      <ChatTaskManager isOpen={isChatOpen} onCloseAction={handleCloseChat} />
     </div>
   );
 }

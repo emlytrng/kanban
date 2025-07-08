@@ -13,11 +13,10 @@ import DeleteBoardModal from "./delete-board-modal";
 import TagManagerModal from "./tag-manager-modal";
 
 interface BoardHeaderProps {
-  onOpenChatAction: () => void;
-  userId: string;
+  onToggleChatAction: () => void;
 }
 
-export default function BoardHeader({ onOpenChatAction }: BoardHeaderProps) {
+export default function BoardHeader({ onToggleChatAction }: BoardHeaderProps) {
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isTagManagerOpen, setIsTagManagerOpen] = useState(false);
 
@@ -65,7 +64,7 @@ export default function BoardHeader({ onOpenChatAction }: BoardHeaderProps) {
         </Button>
 
         <Button
-          onClick={onOpenChatAction}
+          onClick={onToggleChatAction}
           className="bg-primary text-primary-foreground hover:bg-primary/90 border-0"
         >
           <Bot className="h-4 w-4 mr-2" />
