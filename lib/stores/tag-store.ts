@@ -1,4 +1,3 @@
-import { v4 as uuidv4 } from "uuid";
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 
@@ -79,21 +78,7 @@ export const useTagStore = create(
       },
 
       createTag: async (boardId: string, name: string, color: string) => {
-        const tempId = uuidv4();
-        const newTag: Tag = {
-          id: tempId,
-          boardId,
-          name: name.trim(),
-          color: color.toUpperCase(),
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-
-        // Optimistic update
-        set((state) => ({
-          tags: [...state.tags, newTag],
-          error: null,
-        }));
+        set({ error: null });
 
         try {
           const response = await fetch("/api/tags", {
@@ -115,9 +100,8 @@ export const useTagStore = create(
 
           const data: CreateTagResponse = await response.json();
 
-          // Update with actual tag ID from server
           set((state) => ({
-            tags: state.tags.map((tag) => (tag.id === tempId ? data.tag : tag)),
+            tags: [...state.tags, data.tag],
           }));
 
           return data.tag;
@@ -125,11 +109,7 @@ export const useTagStore = create(
           const errorMessage = getErrorMessage(error);
           console.error("Error creating tag:", error);
 
-          // Rollback optimistic update
-          set((state) => ({
-            tags: state.tags.filter((tag) => tag.id !== tempId),
-            error: errorMessage,
-          }));
+          set({ error: errorMessage });
 
           return null;
         }

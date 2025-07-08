@@ -24,6 +24,7 @@ interface BoardSelectorProps {
 export default function BoardSelector({ onDeleteBoard }: BoardSelectorProps) {
   const [newBoardTitle, setNewBoardTitle] = useState("");
   const [isAddingBoard, setIsAddingBoard] = useState(false);
+  const [isCreatingBoard, setIsCreatingBoard] = useState(false);
 
   const { addBoard } = useKanbanActions();
   const currentBoard = useBoard();
@@ -32,12 +33,14 @@ export default function BoardSelector({ onDeleteBoard }: BoardSelectorProps) {
 
   const handleAddBoard = async () => {
     if (newBoardTitle.trim()) {
+      setIsCreatingBoard(true);
       const boardId = await addBoard(newBoardTitle.trim());
       if (boardId) {
         router.push(`/board/${boardId}`);
+        setNewBoardTitle("");
+        setIsAddingBoard(false);
       }
-      setNewBoardTitle("");
-      setIsAddingBoard(false);
+      setIsCreatingBoard(false);
     }
   };
 
@@ -106,9 +109,11 @@ export default function BoardSelector({ onDeleteBoard }: BoardSelectorProps) {
               placeholder="Enter board title..."
               className="mb-4 bg-background border-input text-foreground placeholder:text-muted-foreground"
               autoFocus
+              disabled={isCreatingBoard}
               onKeyDown={(e) => {
-                if (e.key === "Enter") handleAddBoard();
-                if (e.key === "Escape") setIsAddingBoard(false);
+                if (e.key === "Enter" && !isCreatingBoard) handleAddBoard();
+                if (e.key === "Escape" && !isCreatingBoard)
+                  setIsAddingBoard(false);
               }}
             />
             <div className="flex gap-2 justify-end">
@@ -117,6 +122,7 @@ export default function BoardSelector({ onDeleteBoard }: BoardSelectorProps) {
                 variant="ghost"
                 size="sm"
                 className="text-muted-foreground hover:text-foreground hover:bg-muted"
+                disabled={isCreatingBoard}
               >
                 Cancel
               </Button>
@@ -124,9 +130,16 @@ export default function BoardSelector({ onDeleteBoard }: BoardSelectorProps) {
                 onClick={handleAddBoard}
                 size="sm"
                 className="bg-primary text-primary-foreground hover:bg-primary/90"
-                disabled={!newBoardTitle.trim()}
+                disabled={!newBoardTitle.trim() || isCreatingBoard}
               >
-                Create Board
+                {isCreatingBoard ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2" />
+                    Creating...
+                  </>
+                ) : (
+                  "Create Board"
+                )}
               </Button>
             </div>
           </div>

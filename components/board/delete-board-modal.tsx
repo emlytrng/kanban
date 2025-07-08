@@ -43,14 +43,16 @@ export default function DeleteBoardModal({
       } else {
         router.push("/");
       }
+
+      onClose();
+      setDeleteConfirmText("");
     }
 
     setIsDeleting(false);
-    onClose();
-    setDeleteConfirmText("");
   };
 
   const handleClose = () => {
+    if (isDeleting) return;
     onClose();
     setDeleteConfirmText("");
   };
@@ -60,8 +62,14 @@ export default function DeleteBoardModal({
   if (!isOpen || !currentBoard) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-      <div className="bg-background border border-destructive/20 rounded-lg p-6 w-[480px] shadow-xl">
+    <div
+      className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
+      onClick={!isDeleting ? handleClose : undefined}
+    >
+      <div
+        className="bg-background border border-destructive/20 rounded-lg p-6 w-[480px] shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center gap-3 mb-4">
           <div className="flex-shrink-0 w-10 h-10 bg-destructive/10 rounded-full flex items-center justify-center">
             <AlertTriangle className="h-5 w-5 text-destructive" />
@@ -108,6 +116,7 @@ export default function DeleteBoardModal({
               placeholder={currentBoard.title}
               className="bg-background border-input text-foreground placeholder:text-muted-foreground"
               autoFocus
+              disabled={isDeleting}
             />
           </div>
         </div>

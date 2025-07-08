@@ -4,10 +4,7 @@ export const TaskOperationDetailsSchema = z
   .object({
     title: z.string().optional().describe("Task title for creation"),
     description: z.string().optional().describe("Task description"),
-    priority: z
-      .enum(["low", "medium", "high", "urgent"])
-      .optional()
-      .describe("Task priority"),
+
     columnId: z
       .string()
       .optional()
@@ -16,7 +13,6 @@ export const TaskOperationDetailsSchema = z
       .string()
       .optional()
       .describe("Title of the column to place or delete the task"),
-    assignee: z.string().optional().describe("Person to assign the task to"),
     taskId: z.string().optional().describe("ID of the task to modify"),
     sourceColumnId: z
       .string()
@@ -56,10 +52,7 @@ export const TaskOperationResponseSchema = z.object({
       query: z.string().optional().describe("Search query for finding tasks"),
       filters: z
         .object({
-          priority: z.string().optional(),
-          assignee: z.string().optional(),
           column: z.string().optional(),
-          status: z.string().optional(),
         })
         .optional()
         .describe("Filters to apply when searching"),

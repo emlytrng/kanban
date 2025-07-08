@@ -24,7 +24,7 @@ export default function ChatMessages({
   }, [messages]);
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 bg-background">
+    <div className="p-6 bg-background">
       <div className="space-y-4">
         {messages.map((message) => (
           <ChatMessage key={message.id} message={message} />

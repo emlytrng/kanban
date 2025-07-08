@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Bot, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useKanbanActions, useColumns, useChatActions } from "@/lib/store";
 import type { ChatMessage, Task } from "@/types/chat";
 
@@ -236,9 +237,9 @@ export default function ChatTaskManager({
             </Button>
           </div>
 
-          <div className="flex-1 overflow-hidden">
+          <ScrollArea className="flex-1">
             <ChatMessages messages={messages} isLoading={isLoading} />
-          </div>
+          </ScrollArea>
 
           <div className="border-t border-border">
             <ChatInput onSubmit={handleSubmit} isLoading={isLoading} />
