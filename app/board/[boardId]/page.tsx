@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import KanbanBoard from "@/components/kanban-board";
+import Board from "@/components/board/board";
 import { Button } from "@/components/ui/button";
 import { auth0 } from "@/lib/auth0";
 
@@ -32,7 +32,7 @@ export default async function BoardPage({ params }: BoardPageProps) {
           </Button>
         </div>
       </div>
-      <KanbanBoard boardId={boardId} />
+      <Board boardId={boardId} />
     </main>
   );
 }

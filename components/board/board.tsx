@@ -12,15 +12,16 @@ import {
   useTagActions,
 } from "@/lib/store";
 
-import BoardContent from "./board/board-content";
-import BoardHeader from "./board/board-header";
-import ChatTaskManager from "./chat-task-manager";
+import ChatTaskManager from "../chat/chat-task-manager";
 
-type KanbanBoardProps = {
+import BoardContent from "./board-content";
+import BoardHeader from "./board-header";
+
+type BoardProps = {
   boardId: string;
 };
 
-export default function KanbanBoard({ boardId }: KanbanBoardProps) {
+export default function Board({ boardId }: BoardProps) {
   const board = useBoard();
   const isLoading = useIsKanbanLoading();
   const error = useError();

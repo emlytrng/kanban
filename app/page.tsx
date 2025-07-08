@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import AddBoardForm from "@/components/add-board-form";
+import AddBoardForm from "@/components/board/add-board-form";
 import { Button } from "@/components/ui/button";
 import { auth0 } from "@/lib/auth0";
 import { createSupabaseClient } from "@/lib/supabase";

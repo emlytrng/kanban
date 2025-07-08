@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, memo } from "react";
+import { useState } from "react";
 
 import { Droppable, Draggable } from "@hello-pangea/dnd";
 import { Plus, MoreHorizontal, Trash2 } from "lucide-react";
@@ -16,14 +16,14 @@ import { Input } from "@/components/ui/input";
 import { useKanbanActions } from "@/lib/store";
 import type { Column } from "@/types";
 
-import KanbanCard from "./kanban-card";
+import TaskCard from "./task-card";
 
-interface KanbanColumnProps {
+interface ColumnProps {
   column: Column;
   index: number;
 }
 
-function KanbanColumn({ column, index }: KanbanColumnProps) {
+function Column({ column, index }: ColumnProps) {
   const { addCard, deleteColumn } = useKanbanActions();
   const [newCardTitle, setNewCardTitle] = useState("");
   const [isAddingCard, setIsAddingCard] = useState(false);
@@ -102,7 +102,7 @@ function KanbanColumn({ column, index }: KanbanColumnProps) {
                   }`}
                 >
                   {column.cards.map((card, cardIndex) => (
-                    <KanbanCard
+                    <TaskCard
                       key={card.id}
                       card={card}
                       index={cardIndex}
@@ -119,7 +119,7 @@ function KanbanColumn({ column, index }: KanbanColumnProps) {
                 <Input
                   value={newCardTitle}
                   onChange={(e) => setNewCardTitle(e.target.value)}
-                  placeholder="Enter card title..."
+                  placeholder="Enter task title..."
                   className="mb-2 bg-background border-input text-foreground placeholder:text-muted-foreground focus-visible:ring-ring"
                   autoFocus
                   onKeyDown={(e) => {
@@ -153,7 +153,7 @@ function KanbanColumn({ column, index }: KanbanColumnProps) {
                 className="w-full mt-3 justify-start text-muted-foreground hover:text-foreground hover:bg-muted border border-dashed border-border hover:border-muted-foreground/50 transition-colors"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Add a card
+                Add Task
               </Button>
             )}
           </div>
@@ -163,4 +163,4 @@ function KanbanColumn({ column, index }: KanbanColumnProps) {
   );
 }
 
-export default memo(KanbanColumn);
+export default Column;

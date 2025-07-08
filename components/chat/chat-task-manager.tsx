@@ -9,8 +9,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useKanbanActions, useColumns, useChatActions } from "@/lib/store";
 import type { ChatMessage, Task } from "@/types/chat";
 
-import ChatInput from "./chat/chat-input";
-import ChatMessages from "./chat/chat-messages";
+import ChatInput from "./chat-input";
+import ChatMessages from "./chat-messages";
 
 interface ChatTaskManagerProps {
   isOpen: boolean;

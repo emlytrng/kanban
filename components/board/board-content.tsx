@@ -4,7 +4,7 @@ import { DragDropContext, Droppable, type DropResult } from "@hello-pangea/dnd";
 
 import { useColumns, useKanbanActions } from "@/lib/store";
 
-import KanbanColumn from "../kanban-column";
+import Column from "./column";
 
 export default function BoardContent() {
   const columns = useColumns();
@@ -49,7 +49,7 @@ export default function BoardContent() {
               style={{ minWidth: "max-content" }}
             >
               {columns.map((column, index) => (
-                <KanbanColumn key={column.id} column={column} index={index} />
+                <Column key={column.id} column={column} index={index} />
               ))}
               {provided.placeholder}
             </div>

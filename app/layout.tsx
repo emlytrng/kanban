@@ -13,7 +13,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "kanban",
-  description: "A Trello-like board with mock real-time collaboration",
+  description: "A Trello-like board with AI assistance",
 };
 
 export default function RootLayout({

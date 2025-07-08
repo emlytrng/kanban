@@ -2,7 +2,7 @@
 
 import { X } from "lucide-react";
 
-import TagManager from "@/components/tag-manager";
+import TagManager from "@/components/tags/tag-manager";
 import { Button } from "@/components/ui/button";
 
 interface TagManagerModalProps {

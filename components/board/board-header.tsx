@@ -7,10 +7,11 @@ import { Bot, Palette } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useBoard, useTagActions } from "@/lib/store";
 
+import TagManagerModal from "../tags/tag-manager-modal";
+
 import AddColumnModal from "./add-column-modal";
 import BoardSelector from "./board-selector";
 import DeleteBoardModal from "./delete-board-modal";
-import TagManagerModal from "./tag-manager-modal";
 
 interface BoardHeaderProps {
   onToggleChatAction: () => void;

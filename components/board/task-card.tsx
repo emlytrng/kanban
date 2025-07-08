@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Draggable } from "@hello-pangea/dnd";
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 
-import CardTagSelector from "@/components/card-tag-selector";
+import CardTagSelector from "@/components/board/card-tag-selector";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -17,13 +17,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { useKanbanActions } from "@/lib/store";
 import type { Card } from "@/types";
 
-interface KanbanCardProps {
+interface TaskCardProps {
   card: Card;
   index: number;
   columnId: string;
 }
 
-export default function KanbanCard({ card, index, columnId }: KanbanCardProps) {
+export default function TaskCard({ card, index, columnId }: TaskCardProps) {
   const { updateCard, deleteCard } = useKanbanActions();
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(card.title);
@@ -56,31 +56,21 @@ export default function KanbanCard({ card, index, columnId }: KanbanCardProps) {
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className={`p-3 mb-3 bg-card border border-border rounded-lg transition-shadow duration-200 ${
-            snapshot.isDragging
-              ? "shadow-lg ring-2 ring-ring rotate-2 z-50 scale-105"
-              : "hover:shadow-md hover:border-muted-foreground/30"
-          }`}
-          style={{
-            ...provided.draggableProps.style,
-            transform: snapshot.isDragging
-              ? `${provided.draggableProps.style?.transform} rotate(2deg)`
-              : provided.draggableProps.style?.transform,
-          }}
+          className="p-3 mb-3 bg-card border border-border rounded-lg transition-shadow duration-200"
         >
           {isEditing ? (
             <div className="space-y-3">
               <Textarea
                 value={editedTitle}
                 onChange={(e) => setEditedTitle(e.target.value)}
-                placeholder="Card title"
+                placeholder="Enter task title"
                 className="resize-none bg-input border-border text-card-foreground placeholder:text-muted-foreground focus-visible:ring-ring"
                 autoFocus
               />
               <Textarea
                 value={editedDescription}
                 onChange={(e) => setEditedDescription(e.target.value)}
-                placeholder="Description (optional)"
+                placeholder="Enter task description (optional)"
                 className="resize-none text-sm bg-input border-border text-card-foreground placeholder:text-muted-foreground focus-visible:ring-ring"
                 rows={3}
               />

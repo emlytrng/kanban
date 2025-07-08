@@ -16,7 +16,7 @@ export async function createSupabaseClient() {
     const payload = {
       userId: session?.user.sub,
       user_id: session?.user["https://kanban-nine-pi.vercel.app/user_id"],
-      exp: Math.floor(Date.now() / 1000) + 60 * 60,
+      exp: Math.floor(Date.now() / 1000) + 60 * 60, // 1 hour
     };
 
     if (!process.env.SUPABASE_JWT_SECRET) {
