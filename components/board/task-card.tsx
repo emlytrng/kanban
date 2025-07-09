@@ -41,6 +41,7 @@ export default function TaskCard({ task, index, columnId }: TaskCardProps) {
         },
         columnId
       );
+
       setIsEditing(false);
     }
   };

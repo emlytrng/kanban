@@ -32,23 +32,20 @@ export default function AddColumnModal({ disabled }: AddColumnModalProps) {
     if (!newColumnTitle.trim()) return;
 
     setIsLoading(true);
-    try {
-      await addColumn(newColumnTitle.trim());
-      setNewColumnTitle("");
-      setIsOpen(false);
-    } catch (error) {
-      console.error("Failed to add column:", error);
-    } finally {
-      setIsLoading(false);
-    }
+
+    await addColumn(newColumnTitle.trim());
+
+    setIsLoading(false);
+    setNewColumnTitle("");
+    setIsOpen(false);
   };
 
   const handleOpenChange = (open: boolean) => {
-    if (!isLoading) {
-      setIsOpen(open);
-      if (!open) {
-        setNewColumnTitle("");
-      }
+    if (isLoading) return;
+
+    setIsOpen(open);
+    if (!open) {
+      setNewColumnTitle("");
     }
   };
 

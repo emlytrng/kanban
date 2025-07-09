@@ -39,6 +39,7 @@ export default function DeleteBoardModal({
     if (!currentBoard || deleteConfirmText !== currentBoard.title) return;
 
     setIsDeleting(true);
+
     const success = await deleteBoard(currentBoard.id);
 
     if (success) {
@@ -52,8 +53,8 @@ export default function DeleteBoardModal({
         router.push("/");
       }
 
-      onClose();
       setDeleteConfirmText("");
+      onClose();
     }
 
     setIsDeleting(false);
@@ -61,8 +62,8 @@ export default function DeleteBoardModal({
 
   const handleClose = () => {
     if (isDeleting) return;
-    onClose();
     setDeleteConfirmText("");
+    onClose();
   };
 
   const isDeleteEnabled = deleteConfirmText === currentBoard?.title;

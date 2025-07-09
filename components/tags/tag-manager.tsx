@@ -37,7 +37,7 @@ export default function TagManager({ boardId }: TagManagerProps) {
   const error = useTagError();
   const { createTag, updateTag, deleteTag, clearError } = useTagActions();
 
-  const [isCreating, setIsCreating] = useState(false);
+  const [showCreateTagForm, setShowCreateTagForm] = useState(false);
   const [editingTagId, setEditingTagId] = useState<string | null>(null);
   const [newTagName, setNewTagName] = useState("");
   const [newTagColor, setNewTagColor] = useState(TAG_COLORS[0]);
@@ -48,18 +48,15 @@ export default function TagManager({ boardId }: TagManagerProps) {
   const handleCreateTag = async () => {
     if (!newTagName.trim()) return;
 
-    setIsCreatingTag(true);
     clearError();
+    setIsCreatingTag(true);
 
-    const success = await createTag(boardId, newTagName.trim(), newTagColor);
+    await createTag(boardId, newTagName.trim(), newTagColor);
 
     setIsCreatingTag(false);
-
-    if (success) {
-      setNewTagName("");
-      setNewTagColor(TAG_COLORS[0]);
-      setIsCreating(false);
-    }
+    setShowCreateTagForm(false);
+    setNewTagName("");
+    setNewTagColor(TAG_COLORS[0]);
   };
 
   const handleUpdateTag = async (tagId: string) => {
@@ -67,16 +64,14 @@ export default function TagManager({ boardId }: TagManagerProps) {
 
     clearError();
 
-    const success = await updateTag(tagId, {
+    await updateTag(tagId, {
       name: editTagName.trim(),
       color: editTagColor,
     });
 
-    if (success) {
-      setEditingTagId(null);
-      setEditTagName("");
-      setEditTagColor("");
-    }
+    setEditingTagId(null);
+    setEditTagName("");
+    setEditTagColor("");
   };
 
   const handleDeleteTag = async (tagId: string) => {
@@ -91,29 +86,33 @@ export default function TagManager({ boardId }: TagManagerProps) {
   };
 
   const startEditing = (tag: { id: string; name: string; color: string }) => {
+    clearError();
+
     setEditingTagId(tag.id);
     setEditTagName(tag.name);
     setEditTagColor(tag.color);
-    clearError();
   };
 
   const cancelEditing = () => {
+    clearError();
+
     setEditingTagId(null);
     setEditTagName("");
     setEditTagColor("");
-    clearError();
   };
 
   const cancelCreating = () => {
-    setIsCreating(false);
+    clearError();
+
+    setShowCreateTagForm(false);
     setNewTagName("");
     setNewTagColor(TAG_COLORS[0]);
-    clearError();
   };
 
   const handleStartCreating = () => {
-    setIsCreating(true);
     clearError();
+
+    setShowCreateTagForm(true);
   };
 
   if (isLoading) {
@@ -129,7 +128,11 @@ export default function TagManager({ boardId }: TagManagerProps) {
   return (
     <div className="p-6 space-y-4">
       <div className="flex justify-end">
-        <Button onClick={handleStartCreating} size="sm" disabled={isCreating}>
+        <Button
+          onClick={handleStartCreating}
+          size="sm"
+          disabled={showCreateTagForm}
+        >
           <Plus className="h-4 w-4" />
           Add tag
         </Button>
@@ -149,7 +152,7 @@ export default function TagManager({ boardId }: TagManagerProps) {
         </div>
       )}
 
-      {isCreating && (
+      {showCreateTagForm && (
         <div className="p-4 border border-border rounded-lg bg-card space-y-5">
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">

@@ -31,8 +31,9 @@ function KanbanColumn({ column, index }: ColumnProps) {
   const handleAddTask = async () => {
     if (newTaskTitle.trim()) {
       await addTask(column.id, newTaskTitle.trim());
-      setNewTaskTitle("");
+
       setIsAddingTask(false);
+      setNewTaskTitle("");
     }
   };
 

@@ -29,7 +29,9 @@ export default function AddBoardModal() {
     if (!title.trim()) return;
 
     setIsCreating(true);
+
     const boardId = await addBoard(title.trim());
+
     setIsCreating(false);
 
     if (boardId) {
@@ -39,11 +41,11 @@ export default function AddBoardModal() {
   };
 
   const handleOpenChange = (newOpen: boolean) => {
-    if (!isCreating) {
-      setOpen(newOpen);
-      if (!newOpen) {
-        setTitle("New Board");
-      }
+    if (isCreating) return;
+
+    setOpen(newOpen);
+    if (!newOpen) {
+      setTitle("");
     }
   };
 
