@@ -79,11 +79,7 @@ export default function TaskCard({ task, index, columnId }: TaskCardProps) {
                 selectedTags={task.tags || []}
               />
               <div className="flex gap-2">
-                <Button
-                  onClick={handleSaveEdit}
-                  size="sm"
-                  className="bg-primary text-primary-foreground hover:bg-primary/90"
-                >
+                <Button onClick={handleSaveEdit} size="sm">
                   Save
                 </Button>
                 <Button
@@ -92,9 +88,7 @@ export default function TaskCard({ task, index, columnId }: TaskCardProps) {
                     setEditedTitle(task.title);
                     setEditedDescription(task.description || "");
                   }}
-                  variant="ghost"
-                  size="sm"
-                  className="text-muted-foreground hover:text-card-foreground hover:bg-accent"
+                  variant="outline"
                 >
                   Cancel
                 </Button>
@@ -125,15 +119,15 @@ export default function TaskCard({ task, index, columnId }: TaskCardProps) {
                         onClick={() => setIsEditing(true)}
                         className="hover:bg-accent focus:bg-accent text-popover-foreground"
                       >
-                        <Pencil className="h-4 w-4 mr-2" />
-                        Edit Task
+                        <Pencil className="h-4 w-4" />
+                        Edit task
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={handleDeleteTask}
                         className="text-destructive focus:text-destructive hover:bg-accent focus:bg-accent"
                       >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete Task
+                        <Trash2 className="h-4 w-4" />
+                        Delete task
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

@@ -22,7 +22,7 @@ type BoardProps = {
 };
 
 export default function Board({ boardId }: BoardProps) {
-  const board = useBoard();
+  const currentBoard = useBoard();
   const isLoading = useIsKanbanLoading();
   const error = useError();
   const { fetchBoard, fetchUserBoards } = useKanbanActions();
@@ -40,10 +40,10 @@ export default function Board({ boardId }: BoardProps) {
   }, [fetchBoard, fetchUserBoards, boardId]);
 
   useEffect(() => {
-    if (board) {
-      fetchTags(board.id);
+    if (currentBoard) {
+      fetchTags(currentBoard.id);
     }
-  }, [board, fetchTags]);
+  }, [currentBoard, fetchTags]);
 
   const handleToggleChat = () => {
     setIsChatOpen(!isChatOpen);
@@ -71,7 +71,7 @@ export default function Board({ boardId }: BoardProps) {
     );
   }
 
-  if (!board) {
+  if (!currentBoard) {
     return null;
   }
 

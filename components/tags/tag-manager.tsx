@@ -28,7 +28,6 @@ const TAG_COLORS = [
   "#EC4899", // Pink
   "#64748B", // Slate
   "#DC2626", // Dark Red
-  "#EA580C", // Dark Orange
   "#CA8A04", // Dark Yellow
 ];
 
@@ -131,8 +130,8 @@ export default function TagManager({ boardId }: TagManagerProps) {
     <div className="p-6 space-y-4">
       <div className="flex justify-end">
         <Button onClick={handleStartCreating} size="sm" disabled={isCreating}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Tag
+          <Plus className="h-4 w-4" />
+          Add tag
         </Button>
       </div>
 
@@ -151,10 +150,10 @@ export default function TagManager({ boardId }: TagManagerProps) {
       )}
 
       {isCreating && (
-        <div className="p-4 border border-border rounded-lg bg-card space-y-3">
+        <div className="p-4 border border-border rounded-lg bg-card space-y-5">
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">
-              Tag Name
+              Tag name
             </label>
             <Input
               value={newTagName}
@@ -194,8 +193,7 @@ export default function TagManager({ boardId }: TagManagerProps) {
             </Button>
             <Button
               onClick={cancelCreating}
-              variant="ghost"
-              size="sm"
+              variant="outline"
               disabled={isCreatingTag}
             >
               Cancel
@@ -220,7 +218,7 @@ export default function TagManager({ boardId }: TagManagerProps) {
             >
               {editingTagId === tag.id ? (
                 // Edit mode
-                <div className="flex-1 space-y-3">
+                <div className="flex-1 space-y-5">
                   <div className="space-y-2">
                     <Input
                       value={editTagName}
@@ -254,7 +252,7 @@ export default function TagManager({ boardId }: TagManagerProps) {
                     >
                       Save
                     </Button>
-                    <Button onClick={cancelEditing} variant="ghost" size="sm">
+                    <Button onClick={cancelEditing} variant="outline">
                       Cancel
                     </Button>
                   </div>

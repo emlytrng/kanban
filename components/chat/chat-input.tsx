@@ -35,11 +35,7 @@ export default function ChatInput({ onSubmit, isLoading }: ChatInputProps) {
           className="flex-1 bg-background border-input text-foreground placeholder:text-muted-foreground focus-visible:ring-ring"
           autoFocus
         />
-        <Button
-          type="submit"
-          disabled={isLoading || !input.trim()}
-          className="bg-primary text-primary-foreground hover:bg-primary/90"
-        >
+        <Button type="submit" disabled={isLoading || !input.trim()}>
           <Send className="h-4 w-4" />
         </Button>
       </form>

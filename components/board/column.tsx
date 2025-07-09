@@ -78,8 +78,8 @@ function KanbanColumn({ column, index }: ColumnProps) {
                   onClick={handleDeleteColumn}
                   className="text-destructive focus:text-destructive hover:bg-accent focus:bg-accent"
                 >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete Column
+                  <Trash2 className="h-4 w-4" />
+                  Delete column
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -111,7 +111,7 @@ function KanbanColumn({ column, index }: ColumnProps) {
             </Droppable>
 
             {isAddingTask ? (
-              <div className="mt-3">
+              <div className="mt-3 space-y-3">
                 <Input
                   value={newTaskTitle}
                   onChange={(e) => setNewTaskTitle(e.target.value)}
@@ -124,18 +124,10 @@ function KanbanColumn({ column, index }: ColumnProps) {
                   }}
                 />
                 <div className="flex gap-2">
-                  <Button
-                    onClick={handleAddTask}
-                    size="sm"
-                    className="bg-primary text-primary-foreground hover:bg-primary/90"
-                  >
-                    Add Task
-                  </Button>
+                  <Button onClick={handleAddTask}>Add task</Button>
                   <Button
                     onClick={() => setIsAddingTask(false)}
-                    variant="ghost"
-                    size="sm"
-                    className="text-muted-foreground hover:text-card-foreground hover:bg-accent"
+                    variant="outline"
                   >
                     Cancel
                   </Button>
@@ -148,8 +140,8 @@ function KanbanColumn({ column, index }: ColumnProps) {
                 size="sm"
                 className="w-full mt-3 justify-start text-muted-foreground hover:text-foreground hover:bg-muted border border-dashed border-border hover:border-muted-foreground/50 transition-colors"
               >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Task
+                <Plus className="h-4 w-4" />
+                Add task
               </Button>
             )}
           </div>

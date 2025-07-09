@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from "react";
 
-import { Bot, Palette } from "lucide-react";
+import { Bot, Palette, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useBoard, useTagActions } from "@/lib/store";
 
 import TagManagerModal from "../tags/tag-manager-modal";
 
+import AddBoardModal from "./add-board-modal";
 import AddColumnModal from "./add-column-modal";
 import BoardSelector from "./board-selector";
 import DeleteBoardModal from "./delete-board-modal";
@@ -49,25 +50,32 @@ export default function BoardHeader({ onToggleChatAction }: BoardHeaderProps) {
   return (
     <div className="flex items-center justify-between p-6">
       <div className="flex items-center gap-3">
-        <BoardSelector onDeleteBoard={handleDeleteClick} />
+        <BoardSelector />
+
+        <AddBoardModal />
 
         <AddColumnModal disabled={!currentBoard} />
 
         <Button
           onClick={handleTagManagerOpen}
           variant="outline"
-          size="sm"
-          className="flex items-center gap-2 bg-background border-input hover:bg-muted"
           disabled={!currentBoard}
         >
           <Palette className="h-4 w-4" />
           Tags
         </Button>
 
-        <Button
-          onClick={onToggleChatAction}
-          className="bg-primary text-primary-foreground hover:bg-primary/90 border-0"
-        >
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={handleDeleteClick}
+            variant="outline"
+            disabled={!currentBoard}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <Button onClick={onToggleChatAction}>
           <Bot className="h-4 w-4 mr-2" />
           AI Assistant
         </Button>

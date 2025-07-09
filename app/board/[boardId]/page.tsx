@@ -23,11 +23,7 @@ export default async function BoardPage({ params }: BoardPageProps) {
       <div className="px-6 py-4 flex-shrink-0">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-foreground">kanban</h1>
-          <Button
-            asChild
-            variant="outline"
-            className="border-border text-foreground hover:bg-muted bg-transparent"
-          >
+          <Button asChild variant="outline">
             <a href="/auth/logout">Log out</a>
           </Button>
         </div>

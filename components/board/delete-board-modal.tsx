@@ -7,6 +7,14 @@ import { useRouter } from "next/navigation";
 import { Trash2, AlertTriangle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useBoard, useBoards, useKanbanActions } from "@/lib/store";
 
@@ -59,41 +67,35 @@ export default function DeleteBoardModal({
 
   const isDeleteEnabled = deleteConfirmText === currentBoard?.title;
 
-  if (!isOpen || !currentBoard) return null;
-
   return (
-    <div
-      className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
-      onClick={!isDeleting ? handleClose : undefined}
-    >
-      <div
-        className="bg-background border border-destructive/20 rounded-lg p-6 w-[480px] shadow-xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center gap-3 mb-4">
-          <div className="flex-shrink-0 w-10 h-10 bg-destructive/10 rounded-full flex items-center justify-center">
-            <AlertTriangle className="h-5 w-5 text-destructive" />
+    <Dialog open={isOpen && !!currentBoard} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-[480px] border-destructive/20">
+        <DialogHeader>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="flex-shrink-0 w-10 h-10 bg-destructive/10 rounded-full flex items-center justify-center">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+            </div>
+            <div>
+              <DialogTitle className="text-lg font-semibold text-foreground">
+                Delete board
+              </DialogTitle>
+              <DialogDescription className="text-sm text-muted-foreground">
+                This action cannot be undone
+              </DialogDescription>
+            </div>
           </div>
-          <div>
-            <h3 className="text-lg font-semibold text-foreground">
-              Delete Board
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              This action cannot be undone
-            </p>
-          </div>
-        </div>
+        </DialogHeader>
 
-        <div className="mb-6">
-          <p className="text-sm text-muted-foreground mb-4">
+        <div className="space-y-4">
+          <p className="text-sm text-muted-foreground">
             You are about to permanently delete the board{" "}
             <strong className="text-foreground">
-              &quot;{currentBoard.title}&quot;
+              &quot;{currentBoard?.title}&quot;
             </strong>{" "}
             and all of its columns and tasks.
           </p>
 
-          <div className="bg-destructive/5 border border-destructive/20 rounded-md p-3 mb-4">
+          <div className="bg-destructive/5 border border-destructive/20 rounded-md p-3">
             <p className="text-sm text-destructive font-medium mb-2">
               This will permanently delete:
             </p>
@@ -108,12 +110,12 @@ export default function DeleteBoardModal({
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
               Type the board name{" "}
-              <strong>&quot;{currentBoard.title}&quot;</strong> to confirm:
+              <strong>&quot;{currentBoard?.title}&quot;</strong> to confirm:
             </label>
             <Input
               value={deleteConfirmText}
               onChange={(e) => setDeleteConfirmText(e.target.value)}
-              placeholder={currentBoard.title}
+              placeholder={currentBoard?.title}
               className="bg-background border-input text-foreground placeholder:text-muted-foreground"
               autoFocus
               disabled={isDeleting}
@@ -121,14 +123,8 @@ export default function DeleteBoardModal({
           </div>
         </div>
 
-        <div className="flex gap-3 justify-end">
-          <Button
-            onClick={handleClose}
-            variant="ghost"
-            size="sm"
-            className="text-muted-foreground hover:text-foreground hover:bg-muted"
-            disabled={isDeleting}
-          >
+        <DialogFooter>
+          <Button onClick={handleClose} variant="outline" disabled={isDeleting}>
             Cancel
           </Button>
           <Button
@@ -140,18 +136,18 @@ export default function DeleteBoardModal({
           >
             {isDeleting ? (
               <>
-                <div className="w-4 h-4 border-2 border-destructive-foreground/30 border-t-destructive-foreground rounded-full animate-spin mr-2" />
+                <div className="w-4 h-4 border-2 border-destructive-foreground/30 border-t-destructive-foreground rounded-full animate-spin" />
                 Deleting...
               </>
             ) : (
               <>
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete Board
+                <Trash2 className="h-4 w-4" />
+                Delete board
               </>
             )}
           </Button>
-        </div>
-      </div>
-    </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
