@@ -61,8 +61,8 @@ A modern kanban board application built with Next.js, featuring AI-powered assis
 ## Project Structure
 
 ```
-├── app/                    # Next.js app router pages
-├── components/            # React components
+├── app/                  # Next.js app router pages
+├── components/           # React components
 │   ├── board/            # Board-specific components
 │   ├── chat/             # AI chat components
 │   └── ui/               # Reusable UI components
@@ -80,7 +80,7 @@ Use natural language to manage tasks:
 
 - "Create a bug fix task in To Do"
 - "Move the login task to Done"
-- "Show me all high priority tasks"
+- "How many tasks in progress"
 
 ### Drag & Drop
 
@@ -92,4 +92,3 @@ Use natural language to manage tasks:
 
 - Create custom colored tags
 - Assign multiple tags to tasks
-- Filter and organize by tags
