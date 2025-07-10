@@ -23,7 +23,7 @@ interface ColumnProps {
   index: number;
 }
 
-function KanbanColumn({ column, index }: ColumnProps) {
+function Column({ column, index }: ColumnProps) {
   const { addTask, deleteColumn } = useKanbanActions();
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [isAddingTask, setIsAddingTask] = useState(false);
@@ -152,4 +152,4 @@ function KanbanColumn({ column, index }: ColumnProps) {
   );
 }
 
-export default KanbanColumn;
+export default Column;
