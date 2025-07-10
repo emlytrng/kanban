@@ -16,19 +16,13 @@ export type AuthenticatedHandler<TParams = Record<string, string>> = ({
   context?: { params: Promise<TParams> };
 }) => Promise<NextResponse>;
 
-export async function authenticateUser(): Promise<
+export async function getSessionUserId(): Promise<
   { error: NextResponse; userId?: never } | { error?: never; userId: string }
 > {
   try {
     const session = await auth0.getSession();
 
-    if (!session?.user) {
-      return {
-        error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
-      };
-    }
-
-    const userId = session.user["user_id"];
+    const userId = session?.user["user_id"];
     if (!userId) {
       return {
         error: NextResponse.json({ error: "User not found" }, { status: 404 }),
@@ -54,7 +48,7 @@ export function withAuth<TParams = Record<string, string>>(
     request: NextRequest,
     context?: { params: Promise<TParams> }
   ) => {
-    const authResult = await authenticateUser();
+    const authResult = await getSessionUserId();
 
     if (authResult.error) {
       return authResult.error;
